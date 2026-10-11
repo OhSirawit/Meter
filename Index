@@ -1,0 +1,509 @@
+```html
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Taxi Meter Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Digital-7&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --meter-red: #ff3b30;
+            --meter-green: #34c759;
+            --meter-blue: #0a84ff;
+            --meter-bg: #0a0a0a;
+            --meter-border: #222222;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; 
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        @font-face {
+            font-family: 'Digital-7';
+            src: url('https://fonts.cdnfonts.com/s/17381/digital-7.woff') format('woff');
+        }
+
+        .digital-text {
+            font-family: 'Digital-7', monospace;
+            letter-spacing: 3px;
+        }
+
+        .meter-screen {
+            background-color: var(--meter-bg);
+            border: 4px solid var(--meter-border);
+            border-radius: 12px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,1), 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .meter-screen::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .fare-glow {
+            color: var(--meter-red);
+            text-shadow: 0 0 12px rgba(255, 59, 48, 0.7);
+        }
+
+        .dist-glow {
+            color: var(--meter-green);
+            text-shadow: 0 0 12px rgba(52, 199, 89, 0.7);
+        }
+
+        .time-glow {
+            color: var(--meter-blue);
+            text-shadow: 0 0 12px rgba(10, 132, 255, 0.7);
+        }
+
+        .btn-press {
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-press:active {
+            transform: scale(0.95);
+        }
+
+        .no-select {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        @keyframes highlight-pulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); border-color: rgba(16, 185, 129, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(16, 185, 129, 0.8); border-color: rgba(16, 185, 129, 1); }
+        }
+        
+        .pulse-attention {
+            animation: highlight-pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6 flex flex-col justify-between max-w-md mx-auto w-full">
+
+    <header class="text-center mb-3 mt-1">
+        <h1 class="text-3xl font-bold text-yellow-500 tracking-wider mb-2 drop-shadow-md">TAXI METER</h1>
+        <div id="status-badge" class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-600 shadow-sm transition-colors duration-300">
+            <span class="w-2.5 h-2.5 rounded-full bg-slate-500 mr-2" id="gps-dot"></span>
+            <span id="gps-text">ระบบพร้อม รอรับสัญญาณ...</span>
+        </div>
+    </header>
+
+    <div id="protocol-warning" class="hidden bg-red-900/90 border border-red-500 rounded-xl p-4 mb-4 text-xs text-red-100 shadow-lg relative z-20">
+        <div class="font-bold text-sm mb-2 text-red-300 flex items-center">
+            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            เบราว์เซอร์บล็อกการใช้ GPS
+        </div>
+        แอปตรวจพบว่าคุณเปิดไฟล์นี้จากในเครื่อง (URL เป็น content:// หรือ file://) ระบบ Chrome จะไม่อนุญาตให้ใช้ GPS เพื่อความปลอดภัย<br><br>
+        <div class="bg-black/30 p-2 rounded border border-red-500/30 text-white font-medium text-[13px]">
+            👉 ระบบได้เปิด "โหมดจำลอง" ให้แล้ว กรุณากดปุ่ม <span class="text-emerald-400 font-bold">"เริ่มมิเตอร์ (START)"</span> สีเขียวด้านล่าง เพื่อดูการทดสอบวิ่งได้เลยครับ
+        </div>
+    </div>
+
+    <div id="manual-permission-box" class="hidden text-center mb-4 relative z-20">
+        <button id="btn-req-gps" class="btn-press bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-6 rounded-full text-sm shadow-lg border border-blue-400">
+            แตะเพื่อขออนุญาตเปิด GPS
+        </button>
+    </div>
+
+    <main class="flex-grow flex flex-col justify-center space-y-4 z-10 relative">
+        <!-- Total Fare Panel -->
+        <div class="meter-screen p-5 text-center">
+            <div class="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">ค่าโดยสาร (บาท) / FARE</div>
+            <div class="text-[5rem] leading-none digital-text fare-glow no-select" id="val-fare">35.00</div>
+        </div>
+
+        <!-- Secondary Info Grid -->
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Distance -->
+            <div class="meter-screen p-3 text-center">
+                <div class="text-slate-500 text-[10px] font-bold uppercase mb-1 tracking-wider">ระยะทาง (กม.)</div>
+                <div class="text-4xl digital-text dist-glow no-select" id="val-dist">0.00</div>
+            </div>
+            <!-- Traffic Time -->
+            <div class="meter-screen p-3 text-center">
+                <div class="text-slate-500 text-[10px] font-bold uppercase mb-1 tracking-wider">รถติด (นาที)</div>
+                <div class="text-4xl digital-text time-glow no-select" id="val-time">0:00</div>
+            </div>
+        </div>
+
+        <!-- Telemetry Data -->
+        <div class="bg-slate-800/60 rounded-xl p-3 flex justify-between items-center text-sm border border-slate-700">
+            <div class="flex flex-col">
+                <span class="text-slate-400 text-[10px] uppercase">ความเร็วปัจจุบัน</span>
+                <div class="text-base font-bold text-white"><span id="val-speed">0.0</span> <span class="text-xs text-slate-400 font-normal">km/h</span></div>
+            </div>
+            <div class="flex flex-col text-right">
+                <span class="text-slate-400 text-[10px] uppercase">สถานะมิเตอร์</span>
+                <span id="val-status" class="font-bold text-emerald-400 text-base">ว่าง (VACANT)</span>
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-4 space-y-3 pb-2 relative z-20">
+        <div class="flex space-x-3">
+            <button id="btn-start" class="btn-press flex-1 bg-gradient-to-b from-emerald-600 to-emerald-800 hover:from-emerald-500 hover:to-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-900/50 text-xl border border-emerald-500/30">
+                เริ่มมิเตอร์ (START)
+            </button>
+            <button id="btn-stop" class="btn-press flex-1 bg-gradient-to-b from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-900/50 text-xl border border-red-500/30 hidden">
+                หยุด (STOP)
+            </button>
+        </div>
+        
+        <div class="flex space-x-3">
+            <button id="btn-reset" class="btn-press w-2/3 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 rounded-xl shadow border border-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity text-sm" disabled>
+                รีเซ็ต (RESET)
+            </button>
+            <button id="btn-sim" class="btn-press w-1/3 bg-indigo-700 hover:bg-indigo-600 text-white font-semibold py-2 rounded-xl shadow border border-indigo-500/30 text-xs flex flex-col items-center justify-center">
+                <span>โหมดจำลอง</span>
+                <span class="text-[9px] text-indigo-300">(Simulation)</span>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Reset Confirmation Modal -->
+    <div id="modal-reset" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm flex items-center justify-center hidden z-50 opacity-0 transition-opacity duration-200">
+        <div class="bg-slate-800 rounded-2xl p-6 max-w-[300px] w-full text-center border border-slate-600 shadow-2xl transform scale-95 transition-transform duration-200" id="modal-reset-content">
+            <div class="w-14 h-14 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">เริ่มรอบใหม่?</h3>
+            <p class="text-slate-400 text-xs mb-5">ข้อมูลค่าโดยสารปัจจุบันจะถูกลบเพื่อรับผู้โดยสารใหม่</p>
+            <div class="flex space-x-3">
+                <button id="btn-cancel" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2.5 rounded-xl text-sm">ยกเลิก</button>
+                <button id="btn-confirm" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-semibold py-2.5 rounded-xl text-sm shadow-lg shadow-red-900/50">รีเซ็ต</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const RATES = {
+            START_FARE: 35.00,
+            TRAFFIC_PER_MIN: 3.00,
+            TRAFFIC_SPEED_THRESHOLD: 6.0 // ต่ำกว่า 6 km/h ถือว่ารถติด
+        };
+
+        let state = {
+            isRunning: false,
+            isSimulating: false,
+            distanceKm: 0,
+            trafficTimeSeconds: 0,
+            currentFare: RATES.START_FARE,
+            currentSpeed: 0, 
+            lastLat: null,
+            lastLon: null,
+            lastTimestamp: null,
+            watchId: null,
+            tickIntervalId: null,
+            permissionGranted: false
+        };
+
+        const ui = {
+            fare: document.getElementById('val-fare'),
+            dist: document.getElementById('val-dist'),
+            time: document.getElementById('val-time'),
+            speed: document.getElementById('val-speed'),
+            statusText: document.getElementById('val-status'),
+            gpsDot: document.getElementById('gps-dot'),
+            gpsText: document.getElementById('gps-text'),
+            statusBadge: document.getElementById('status-badge'),
+            protocolWarn: document.getElementById('protocol-warning'),
+            manualPermBox: document.getElementById('manual-permission-box'),
+            btnStart: document.getElementById('btn-start'),
+            btnStop: document.getElementById('btn-stop'),
+            btnReset: document.getElementById('btn-reset'),
+            btnSim: document.getElementById('btn-sim'),
+            btnReqGps: document.getElementById('btn-req-gps'),
+            modal: document.getElementById('modal-reset'),
+            modalContent: document.getElementById('modal-reset-content'),
+            btnCancel: document.getElementById('btn-cancel'),
+            btnConfirm: document.getElementById('btn-confirm')
+        };
+
+        function calculateDistanceFare(distKm) {
+            let fare = 0;
+            let d = distKm;
+            if (d > 1) { fare += (Math.min(d, 10) - 1) * 6.50; }
+            if (d > 10) { fare += (Math.min(d, 20) - 10) * 7.00; }
+            if (d > 20) { fare += (Math.min(d, 40) - 20) * 8.00; }
+            if (d > 40) { fare += (Math.min(d, 60) - 40) * 8.50; }
+            if (d > 60) { fare += (Math.min(d, 80) - 60) * 9.00; }
+            if (d > 80) { fare += (d - 80) * 10.50; }
+            return fare;
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; 
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function formatTime(totalSeconds) {
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function meterTick() {
+            if (!state.isRunning) return;
+
+            if (state.currentSpeed < RATES.TRAFFIC_SPEED_THRESHOLD) {
+                state.trafficTimeSeconds++;
+            }
+
+            if (state.isSimulating) {
+                const rand = Math.random();
+                if (rand < 0.2) state.currentSpeed = 0; 
+                else if (rand < 0.4) state.currentSpeed = 5; 
+                else state.currentSpeed = 30 + (Math.random() * 20); 
+
+                if (state.currentSpeed > 0) {
+                    state.distanceKm += (state.currentSpeed / 3600);
+                }
+            }
+
+            const distFare = calculateDistanceFare(state.distanceKm);
+            const trafficFare = (state.trafficTimeSeconds / 60) * RATES.TRAFFIC_PER_MIN;
+            state.currentFare = RATES.START_FARE + distFare + trafficFare;
+
+            ui.fare.innerText = Math.floor(state.currentFare).toFixed(2);
+            ui.dist.innerText = state.distanceKm.toFixed(2);
+            ui.time.innerText = formatTime(state.trafficTimeSeconds);
+            ui.speed.innerText = state.currentSpeed.toFixed(1);
+        }
+
+        function setGPSStatus(type, message) {
+            if(type === 'success') {
+                ui.gpsDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2 shadow-[0_0_8px_rgba(16,185,129,0.8)]";
+                ui.statusBadge.className = "inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-900/30 text-emerald-400 border border-emerald-800";
+            } else if (type === 'error') {
+                ui.gpsDot.className = "w-2.5 h-2.5 rounded-full bg-red-500 mr-2 shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-pulse";
+                ui.statusBadge.className = "inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-red-900/30 text-red-400 border border-red-800";
+            } else if (type === 'sim') {
+                ui.gpsDot.className = "w-2.5 h-2.5 rounded-full bg-fuchsia-500 mr-2 animate-bounce";
+                ui.statusBadge.className = "inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-fuchsia-900/30 text-fuchsia-400 border border-fuchsia-800";
+            }
+            ui.gpsText.innerText = message;
+        }
+
+        function handleGPSPosition(position) {
+            state.permissionGranted = true;
+            ui.manualPermBox.classList.add('hidden');
+            setGPSStatus('success', 'เชื่อมต่อ GPS สำเร็จ');
+
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            
+            if (position.coords.speed !== null && position.coords.speed >= 0) {
+                state.currentSpeed = position.coords.speed * 3.6;
+            }
+
+            if (state.isRunning && !state.isSimulating && state.lastLat !== null && state.lastLon !== null) {
+                const distMoved = calculateDistance(state.lastLat, state.lastLon, lat, lon);
+                if (distMoved > 0.002) { 
+                    state.distanceKm += distMoved;
+                    if (position.coords.speed === null && state.lastTimestamp) {
+                        const timeDiffSec = (position.timestamp - state.lastTimestamp) / 1000;
+                        if(timeDiffSec > 0) {
+                            state.currentSpeed = (distMoved / timeDiffSec) * 3600;
+                        }
+                    }
+                }
+            }
+
+            state.lastLat = lat;
+            state.lastLon = lon;
+            state.lastTimestamp = position.timestamp;
+            
+            if(!state.isRunning && !state.isSimulating) {
+                ui.speed.innerText = state.currentSpeed.toFixed(1);
+            }
+        }
+
+        function handleGPSError(error) {
+            state.currentSpeed = 0;
+            if(!state.isRunning) ui.speed.innerText = "0.0";
+            ui.manualPermBox.classList.remove('hidden');
+
+            let errMsg = "ไม่มีสัญญาณ GPS";
+            switch(error.code) {
+                case error.PERMISSION_DENIED: errMsg = "คุณปฏิเสธการเข้าถึงตำแหน่ง"; break;
+                case error.POSITION_UNAVAILABLE: errMsg = "หาสัญญาณไม่พบ (อาจอยู่ในตึก)"; break;
+                case error.TIMEOUT: errMsg = "สัญญาณตอบกลับช้าเกินไป"; break;
+            }
+            setGPSStatus('error', errMsg);
+        }
+
+        function requestInitialGPS() {
+            if ("geolocation" in navigator) {
+                setGPSStatus('error', 'กำลังขอสิทธิ์ GPS...');
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => { handleGPSPosition(pos); },
+                    (err) => { handleGPSError(err); },
+                    { enableHighAccuracy: true, timeout: 5000 }
+                );
+            } else {
+                setGPSStatus('error', 'อุปกรณ์ไม่รองรับ GPS');
+            }
+        }
+
+        function startMeterEngine() {
+            state.isRunning = true;
+            ui.statusText.innerText = "มีผู้โดยสาร (HIRED)";
+            ui.statusText.className = "font-bold text-yellow-400 text-base";
+            
+            ui.btnStart.classList.add('hidden');
+            ui.btnStart.classList.remove('pulse-attention'); // Remove pulse if it was on
+            ui.btnStop.classList.remove('hidden');
+            ui.btnReset.disabled = true;
+            ui.btnSim.disabled = true;
+            ui.btnSim.classList.add('opacity-50');
+            
+            state.tickIntervalId = setInterval(meterTick, 1000);
+            
+            if (!state.isSimulating) {
+                state.lastLat = null; 
+                if ("geolocation" in navigator) {
+                    state.watchId = navigator.geolocation.watchPosition(
+                        handleGPSPosition, handleGPSError, 
+                        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+                    );
+                }
+            }
+        }
+
+        function stopMeterEngine() {
+            state.isRunning = false;
+            ui.statusText.innerText = "หยุดพัก (PAUSED)";
+            ui.statusText.className = "font-bold text-slate-400 text-base";
+            state.currentSpeed = 0;
+            ui.speed.innerText = "0.0";
+            
+            ui.btnStop.classList.add('hidden');
+            ui.btnStart.classList.remove('hidden');
+            ui.btnStart.innerText = "ทำต่อ (RESUME)";
+            ui.btnReset.disabled = false;
+            
+            if (state.tickIntervalId) clearInterval(state.tickIntervalId);
+            
+            if (!state.isSimulating && state.watchId !== null) {
+                navigator.geolocation.clearWatch(state.watchId);
+                state.watchId = null;
+            }
+        }
+
+        function resetMeter() {
+            state.distanceKm = 0;
+            state.trafficTimeSeconds = 0;
+            state.currentFare = RATES.START_FARE;
+            state.currentSpeed = 0;
+            state.lastLat = null;
+            state.lastLon = null;
+            
+            ui.fare.innerText = state.currentFare.toFixed(2);
+            ui.dist.innerText = "0.00";
+            ui.time.innerText = "0:00";
+            ui.speed.innerText = "0.0";
+            
+            ui.statusText.innerText = "ว่าง (VACANT)";
+            ui.statusText.className = "font-bold text-emerald-400 text-base";
+            ui.btnStart.innerText = "เริ่มมิเตอร์ (START)";
+            ui.btnSim.disabled = false;
+            ui.btnSim.classList.remove('opacity-50');
+            
+            ui.modal.classList.add('opacity-0');
+            ui.modalContent.classList.remove('scale-100');
+            ui.modalContent.classList.add('scale-95');
+            setTimeout(() => { ui.modal.classList.add('hidden'); }, 200);
+        }
+
+        ui.btnStart.addEventListener('click', startMeterEngine);
+        ui.btnStop.addEventListener('click', stopMeterEngine);
+        ui.btnReqGps.addEventListener('click', requestInitialGPS);
+        
+        ui.btnSim.addEventListener('click', () => {
+            state.isSimulating = !state.isSimulating;
+            if (state.isSimulating) {
+                ui.btnSim.classList.replace('bg-indigo-700', 'bg-fuchsia-700');
+                ui.btnSim.classList.replace('hover:bg-indigo-600', 'hover:bg-fuchsia-600');
+                ui.btnSim.innerHTML = `<span>ยกเลิกจำลอง</span><span class="text-[9px] text-fuchsia-200">(Use Real GPS)</span>`;
+                setGPSStatus('sim', 'เปิดโหมดจำลองอัตโนมัติ');
+                ui.manualPermBox.classList.add('hidden');
+                ui.btnStart.classList.add('pulse-attention'); // Highlight start button
+            } else {
+                ui.btnSim.classList.replace('bg-fuchsia-700', 'bg-indigo-700');
+                ui.btnSim.classList.replace('hover:bg-fuchsia-600', 'hover:bg-indigo-600');
+                ui.btnSim.innerHTML = `<span>โหมดจำลอง</span><span class="text-[9px] text-indigo-300">(Simulation)</span>`;
+                setGPSStatus('error', 'ยกเลิกจำลองแล้ว');
+                ui.btnStart.classList.remove('pulse-attention');
+                if(!state.permissionGranted && !ui.protocolWarn.classList.contains('hidden')) {
+                     // Do nothing if blocked
+                } else {
+                    requestInitialGPS();
+                }
+            }
+        });
+
+        ui.btnReset.addEventListener('click', () => {
+            ui.modal.classList.remove('hidden');
+            void ui.modal.offsetWidth; // Reflow
+            ui.modal.classList.remove('opacity-0');
+            ui.modalContent.classList.remove('scale-95');
+            ui.modalContent.classList.add('scale-100');
+        });
+
+        ui.btnCancel.addEventListener('click', () => {
+            ui.modal.classList.add('opacity-0');
+            ui.modalContent.classList.remove('scale-100');
+            ui.modalContent.classList.add('scale-95');
+            setTimeout(() => { ui.modal.classList.add('hidden'); }, 200);
+        });
+        ui.btnConfirm.addEventListener('click', resetMeter);
+
+        window.onload = () => {
+            const proto = window.location.protocol;
+            if (proto === 'file:' || proto.startsWith('content')) {
+                ui.protocolWarn.classList.remove('hidden');
+                setGPSStatus('error', 'เบราว์เซอร์บล็อก GPS');
+                
+                // Force simulation mode
+                state.isSimulating = true;
+                ui.btnSim.classList.replace('bg-indigo-700', 'bg-fuchsia-700');
+                ui.btnSim.classList.replace('hover:bg-indigo-600', 'hover:bg-fuchsia-600');
+                ui.btnSim.innerHTML = `<span>เปิดโหมดจำลองอยู่</span><span class="text-[9px] text-fuchsia-200">(บังคับเนื่องจากบล็อก)</span>`;
+                setGPSStatus('sim', 'เปิดโหมดจำลองอัตโนมัติ');
+                
+                // Make START button pulse to guide user
+                ui.btnStart.classList.add('pulse-attention');
+            } else {
+                ui.manualPermBox.classList.remove('hidden');
+                setGPSStatus('error', 'รอการอนุญาต GPS');
+                requestInitialGPS();
+            }
+        };
+
+    </script>
+</body>
+</html>
+```
