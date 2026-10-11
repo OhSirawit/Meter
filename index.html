@@ -211,7 +211,8 @@
             lastTimestamp: null,
             watchId: null,
             tickIntervalId: null,
-            permissionGranted: false
+            permissionGranted: false,
+            wakeLock: null
         };
 
         const ui = {
@@ -359,19 +360,32 @@
                 case error.POSITION_UNAVAILABLE: errMsg = "หาสัญญาณไม่พบ (อาจอยู่ในตึก)"; break;
                 case error.TIMEOUT: errMsg = "สัญญาณตอบกลับช้าเกินไป"; break;
             }
-            setGPSStatus('error', errMsg);
+            // เพิ่มการโชว์ Error Code จะได้รู้ว่าสาเหตุมาจากอะไร
+            setGPSStatus('error', errMsg + " (" + error.code + ")");
         }
 
         function requestInitialGPS() {
             if ("geolocation" in navigator) {
-                setGPSStatus('error', 'กำลังขอสิทธิ์ GPS...');
+                setGPSStatus('error', 'กำลังค้นหาดาวเทียม GPS...');
+                // เพิ่มเวลา Timeout ให้รอนานขึ้นเป็น 15 วินาที
                 navigator.geolocation.getCurrentPosition(
                     (pos) => { handleGPSPosition(pos); },
                     (err) => { handleGPSError(err); },
-                    { enableHighAccuracy: true, timeout: 5000 }
+                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
                 );
             } else {
                 setGPSStatus('error', 'อุปกรณ์ไม่รองรับ GPS');
+            }
+        }
+        
+        // ฟังก์ชันป้องกันหน้าจอดับระหว่างที่มิเตอร์กำลังวิ่ง (Wake Lock API)
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    state.wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {
+                console.log('Wake Lock error:', err);
             }
         }
 
@@ -387,6 +401,9 @@
             ui.btnSim.disabled = true;
             ui.btnSim.classList.add('opacity-50');
             
+            // เปิดระบบป้องกันหน้าจอดับ
+            requestWakeLock();
+            
             state.tickIntervalId = setInterval(meterTick, 1000);
             
             if (!state.isSimulating) {
@@ -394,7 +411,8 @@
                 if ("geolocation" in navigator) {
                     state.watchId = navigator.geolocation.watchPosition(
                         handleGPSPosition, handleGPSError, 
-                        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+                        // เพิ่มเวลา Timeout เป็น 20 วินาที
+                        { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 }
                     );
                 }
             }
@@ -404,24 +422,4 @@
             state.isRunning = false;
             ui.statusText.innerText = "หยุดชั่วคราว";
             ui.statusText.className = "font-bold text-slate-400 text-base";
-            state.currentSpeed = 0;
-            
-            ui.btnStop.classList.add('hidden');
-            ui.btnStart.classList.remove('hidden');
-            ui.btnStart.innerText = "ทำต่อ";
-            ui.btnReset.disabled = false;
-            
-            if (state.tickIntervalId) clearInterval(state.tickIntervalId);
-            
-            if (!state.isSimulating && state.watchId !== null) {
-                navigator.geolocation.clearWatch(state.watchId);
-                state.watchId = null;
-            }
-        }
-
-        function resetMeter() {
-            state.distanceKm = 0;
-            state.trafficTimeSeconds = 0;
-            state.currentFare = RATES.START_FARE;
-            state.currentSpeed = 0;
-            state.lastLat = null
+       
