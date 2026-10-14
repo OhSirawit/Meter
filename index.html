@@ -228,45 +228,35 @@
             <textarea id="details" rows="2" required placeholder="ระบุรายละเอียดงาน / ชื่อลูกค้า / จุดหมายปลายทาง หรือรายการสิ่งของ..." class="washi-input w-full rounded-xl px-4 py-3 text-sm"></textarea>
           </div>
 
-          <!-- พิกัดสถานที่ (บังคับดึงอัตโนมัติทุกครั้ง ไม่มีปุ่มกด) -->
-          <div class="bg-[#F6F2E9]/80 p-4 sm:p-5 rounded-xl border border-[#E2D9C5] space-y-3">
-            <div class="flex items-center justify-between gap-2">
-              <label class="text-xs font-bold text-[#3D3A35] flex items-center gap-2">
-                <span class="w-6 h-6 rounded-md bg-[#C84B31]/10 text-[#C84B31] flex items-center justify-center">
-                  <i class="fa-solid fa-location-dot"></i>
-                </span>
-                สถานที่ปฏิบัติงาน / พิกัด GPS อัตโนมัติ <span class="text-[#C84B31]">*</span>
+          <!-- ปุ่มคู่ แนบใบเสร็จ & SAVE GPS สไตล์มินิมอลตามแบบ -->
+          <div class="space-y-3 pt-1">
+            <div class="grid grid-cols-2 gap-3.5">
+              <!-- ปุ่มซ้าย: แนบใบเสร็จ (เส้นประ) -->
+              <button type="button" onclick="toggleReceiptDrawer()" class="flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-2xl border-2 border-dashed border-[#C7BFA9] bg-[#FFFDF9] hover:border-[#C84B31] hover:bg-[#FFF9F7] text-[#263547] font-bold text-xs sm:text-sm transition shadow-sm">
+                <i class="fa-solid fa-camera text-[#C84B31] text-base"></i>
+                <span>แนบใบเสร็จ</span>
+              </button>
+
+              <!-- ปุ่มขวา: SAVE GPS (กล่องเช็คบ็อกซ์พร้อมติ๊กถูก) -->
+              <label for="saveGpsToggle" class="flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-2xl border border-[#E2D9C5] bg-[#FFFDF9] hover:border-[#263547] text-[#2B2B2B] font-bold text-xs sm:text-sm cursor-pointer transition shadow-sm select-none">
+                <input type="checkbox" id="saveGpsToggle" checked onchange="handleGpsToggle(this.checked)" class="w-4 h-4 rounded accent-[#263547] cursor-pointer">
+                <span class="tracking-wide">SAVE GPS</span>
+                <span id="gpsMiniDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse" title="สถานะพิกัด GPS"></span>
               </label>
-              <span id="gpsStatusBadge" class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 flex items-center gap-1.5">
-                <i class="fa-solid fa-spinner fa-spin"></i> กำลังดึงพิกัดอัตโนมัติ...
-              </span>
             </div>
-            <input type="text" id="locationName" placeholder="ระบบจะเติมชื่อสถานที่จาก GPS ให้อัตโนมัติ หรือพิมพ์เพิ่มเติมได้..." class="washi-input w-full rounded-xl px-4 py-2.5 text-sm">
-            <div id="gpsCoordsText" class="text-xs text-[#6E6A63] pl-1">ระบบจะบังคับดึงพิกัด GPS ปัจจุบันทุกครั้งเมื่อกดบันทึกข้อมูล</div>
+
+            <!-- ข้อมูลพิกัดที่ซ่อนอยู่เบื้องหลัง -->
+            <input type="hidden" id="locationName">
             <input type="hidden" id="lat">
             <input type="hidden" id="lng">
-          </div>
 
-          <!-- แนบไฟล์ / ถ่ายรูปพร้อมบีบอัด -->
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <label class="block text-xs font-bold text-[#5A554C]">
-                <i class="fa-solid fa-receipt text-[#C84B31] mr-1"></i> แนบหลักฐานสลิป / ใบเสร็จ
-              </label>
-              <span class="text-[11px] text-[#8C857B]">ย่อขนาดภาพอัตโนมัติ</span>
-            </div>
-            <div class="grid grid-cols-2 gap-3.5">
-              <button type="button" onclick="openCamera()" class="group flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl border border-dashed border-[#B8AE99] bg-white hover:border-[#C84B31] hover:bg-[#FFF9F7] text-[#3D3A35] font-semibold text-xs transition">
-                <span class="w-8 h-8 rounded-lg bg-[#C84B31]/10 text-[#C84B31] flex items-center justify-center group-hover:scale-105 transition">
-                  <i class="fa-solid fa-camera text-sm"></i>
-                </span>
-                <span>ถ่ายรูปใบเสร็จ</span>
+            <!-- ถาดตัวเลือกเมื่อกดปุ่ม "แนบใบเสร็จ" -->
+            <div id="receiptChoiceDrawer" class="hidden fade-in grid grid-cols-2 gap-3 bg-[#F6F2E9] p-3 rounded-xl border border-[#E2D9C5]">
+              <button type="button" onclick="openCamera()" class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-white hover:bg-[#FFF9F7] border border-[#DCD3C0] text-[#2B2B2B] font-semibold text-xs transition">
+                <i class="fa-solid fa-camera text-[#C84B31]"></i> ถ่ายรูปด้วยกล้อง
               </button>
-              <label class="group flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl border border-dashed border-[#B8AE99] bg-white hover:border-[#5F7A61] hover:bg-[#F7FAF7] text-[#3D3A35] font-semibold text-xs cursor-pointer transition">
-                <span class="w-8 h-8 rounded-lg bg-[#5F7A61]/15 text-[#5F7A61] flex items-center justify-center group-hover:scale-105 transition">
-                  <i class="fa-solid fa-images text-sm"></i>
-                </span>
-                <span>เลือกรูปจากอัลบั้ม</span>
+              <label class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-white hover:bg-[#F7FAF7] border border-[#DCD3C0] text-[#2B2B2B] font-semibold text-xs cursor-pointer transition">
+                <i class="fa-solid fa-images text-[#5F7A61]"></i> เลือกจากอัลบั้ม
                 <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
               </label>
             </div>
@@ -302,8 +292,8 @@
 
           <!-- ปุ่ม Submit สไตล์ครามญี่ปุ่น (Ai-iro) -->
           <button type="submit" id="submitBtn" class="btn-indigo-jp w-full font-semibold py-4 rounded-xl flex items-center justify-center gap-2.5 text-sm tracking-wide">
-            <i class="fa-solid fa-paper-plane text-[#E8C574] text-sm"></i>
             <span>บันทึกข้อมูลเข้าสู่ระบบ</span>
+            <i class="fa-solid fa-paper-plane text-[#E8C574] text-sm"></i>
           </button>
         </div>
       </form>
@@ -623,24 +613,34 @@
       document.getElementById('fuelAmountLabel').innerHTML = type + ' [฿] <span class="text-[#C84B31]">*</span>';
     }
 
+    function toggleReceiptDrawer() {
+      const drawer = document.getElementById('receiptChoiceDrawer');
+      if (drawer) drawer.classList.toggle('hidden');
+    }
+
+    function handleGpsToggle(checked) {
+      const dot = document.getElementById('gpsMiniDot');
+      if (checked) {
+        acquireMandatoryGPS(true).catch(function() {});
+      } else {
+        document.getElementById('lat').value = '';
+        document.getElementById('lng').value = '';
+        document.getElementById('locationName').value = '';
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-gray-300';
+      }
+    }
+
     function acquireMandatoryGPS(forceFresh) {
       return new Promise(function(resolve, reject) {
-        const badge = document.getElementById('gpsStatusBadge');
-        const coordsEl = document.getElementById('gpsCoordsText');
+        const dot = document.getElementById('gpsMiniDot');
 
         if (!navigator.geolocation) {
-          if (badge) {
-            badge.className = 'text-[11px] font-semibold px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 flex items-center gap-1.5';
-            badge.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> อุปกรณ์ไม่รองรับ GPS';
-          }
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-rose-500';
           reject(new Error('อุปกรณ์ไม่รองรับ GPS'));
           return;
         }
 
-        if (badge) {
-          badge.className = 'text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 flex items-center gap-1.5';
-          badge.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังดึงพิกัด GPS...';
-        }
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
 
         navigator.geolocation.getCurrentPosition(async function(pos) {
           const lat = pos.coords.latitude.toFixed(6);
@@ -648,37 +648,29 @@
           document.getElementById('lat').value = lat;
           document.getElementById('lng').value = lng;
 
-          if (badge) {
-            badge.className = 'text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#5F7A61]/15 text-[#4E6650] border border-[#5F7A61]/30 flex items-center gap-1.5';
-            badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> พิกัด GPS พร้อมใช้งาน';
-          }
-
-          if (coordsEl) {
-            coordsEl.innerHTML = 'พิกัดปัจจุบัน: <a href="https://www.google.com/maps?q=' + lat + ',' + lng + '" target="_blank" class="text-[#C84B31] font-semibold underline">' + lat + ', ' + lng + '</a>';
-          }
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-[#5F7A61]';
 
           const locInput = document.getElementById('locationName');
           if (!locInput.value || forceFresh) {
             try {
               const res = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&accept-language=th');
               const data = await res.json();
-              if (data && data.display_name && !locInput.value) {
+              if (data && data.display_name) {
                 locInput.value = data.display_name.split(',').slice(0, 3).join(', ');
               }
             } catch (e) {}
           }
           resolve({ lat: lat, lng: lng });
         }, function(err) {
-          if (badge) {
-            badge.className = 'text-[11px] font-semibold px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 flex items-center gap-1.5';
-            badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> กรุณาเปิดสิทธิ์ GPS';
-          }
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-rose-500';
           reject(err);
         }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
       });
     }
 
     async function openCamera() {
+      const drawer = document.getElementById('receiptChoiceDrawer');
+      if (drawer) drawer.classList.add('hidden');
       const box = document.getElementById('cameraBox');
       const video = document.getElementById('cameraVideo');
       try {
@@ -713,6 +705,8 @@
     }
 
     function handleFileSelect(e) {
+      const drawer = document.getElementById('receiptChoiceDrawer');
+      if (drawer) drawer.classList.add('hidden');
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
@@ -769,18 +763,20 @@
     async function handleSubmit(e) {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
+      const saveGpsChecked = document.getElementById('saveGpsToggle').checked;
       btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-location-crosshairs fa-spin text-[#E8C574]"></i> <span>กำลังบังคับดึงพิกัด GPS ปัจจุบัน...</span>';
 
-      // บังคับดึงพิกัด GPS ล่าสุดทุกครั้งก่อนบันทึกข้อมูล
-      let coords;
-      try {
-        coords = await acquireMandatoryGPS(true);
-      } catch (gpsErr) {
-        showNotice('ระบบบังคับใช้พิกัด GPS กรุณาเปิด Location และอนุญาตสิทธิ์ก่อนบันทึกครับ', true);
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-paper-plane text-[#E8C574] text-sm"></i> <span>บันทึกข้อมูลเข้าสู่ระบบ</span>';
-        return;
+      let coords = { lat: '', lng: '' };
+      if (saveGpsChecked) {
+        btn.innerHTML = '<i class="fa-solid fa-location-crosshairs fa-spin text-[#E8C574]"></i> <span>กำลังดึงพิกัด GPS ปัจจุบัน...</span>';
+        try {
+          coords = await acquireMandatoryGPS(true);
+        } catch (gpsErr) {
+          showNotice('กรุณาเปิด Location (GPS) และอนุญาตสิทธิ์ก่อนบันทึกครับ', true);
+          btn.disabled = false;
+          btn.innerHTML = '<span>บันทึกข้อมูลเข้าสู่ระบบ</span> <i class="fa-solid fa-paper-plane text-[#E8C574] text-sm"></i>';
+          return;
+        }
       }
 
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-amber-400"></i> <span>กำลังซิงค์ข้อมูลเข้า Google Sheet...</span>';
@@ -795,10 +791,10 @@
         date: document.getElementById('date').value,
         category: cat,
         details: document.getElementById('details').value,
-        locationName: document.getElementById('locationName').value || ('พิกัด ' + lat + ', ' + lng),
+        locationName: saveGpsChecked ? (document.getElementById('locationName').value || ('พิกัด ' + lat + ', ' + lng)) : '',
         lat: lat,
         lng: lng,
-        mapUrl: 'https://www.google.com/maps?q=' + lat + ',' + lng,
+        mapUrl: (lat && lng) ? ('https://www.google.com/maps?q=' + lat + ',' + lng) : '',
         runFee: 0, cashCollected: 0, tollFee: 0, parkingFee: 0, tips: 0,
         fuelType: '', fuelAmount: 0, amount: 0,
         netExpense: 0, cashIn: 0,
@@ -848,9 +844,11 @@
           document.getElementById('locationName').value = '';
           clearImage();
           selectCategory(cat);
-          acquireMandatoryGPS(false);
+          if (document.getElementById('saveGpsToggle').checked) {
+            acquireMandatoryGPS(false).catch(function() {});
+          }
           btn.innerHTML = '<i class="fa-solid fa-circle-check text-[#88B08B]"></i> <span>บันทึกลงแท็บ WepApp สำเร็จ!</span>';
-          showNotice('บันทึกข้อมูลพร้อมพิกัด GPS ลงแท็บ WepApp สำเร็จ!', false);
+          showNotice('บันทึกข้อมูลลงแท็บ WepApp สำเร็จ!', false);
         } else {
           showNotice('เกิดข้อผิดพลาด: ' + (result.message || 'ไม่ทราบสาเหตุ'), true);
           btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-[#E57373]"></i> <span>ลองใหม่อีกครั้ง</span>';
@@ -858,11 +856,11 @@
       } catch (err) {
         console.error('Error:', err);
         showNotice('ไม่สามารถติดต่อ Google Sheet ได้ กรุณาตรวจสอบสิทธิ์ Anyone ใน Apps Script', true);
-        btn.innerHTML = '<i class="fa-solid fa-paper-plane text-[#E8C574]"></i> <span>บันทึกข้อมูลเข้าสู่ระบบ</span>';
+        btn.innerHTML = '<span>บันทึกข้อมูลเข้าสู่ระบบ</span> <i class="fa-solid fa-paper-plane text-[#E8C574]"></i>';
       } finally {
         btn.disabled = false;
         setTimeout(function() {
-          btn.innerHTML = '<i class="fa-solid fa-paper-plane text-[#E8C574] text-sm"></i> <span>บันทึกข้อมูลเข้าสู่ระบบ</span>';
+          btn.innerHTML = '<span>บันทึกข้อมูลเข้าสู่ระบบ</span> <i class="fa-solid fa-paper-plane text-[#E8C574] text-sm"></i>';
         }, 2500);
       }
     }
