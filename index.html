@@ -71,36 +71,24 @@
             <input type="date" id="date" required class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
           </div>
 
-          <!-- ประเภท (ฝัง HTML โดยตรง ไม่หายแน่นอน) -->
+          <!-- ประเภท (แบบ Drop List) -->
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">ประเภท <span class="text-red-500">*</span></label>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="categoryGrid">
-              <button type="button" onclick="selectCategory('วิ่งงานรถ')" data-cat="วิ่งงานรถ" class="cat-btn active flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
-                <i class="fa-solid fa-truck-fast text-sm text-indigo-600"></i> <span>วิ่งงานรถ</span>
-              </button>
-              <button type="button" onclick="selectCategory('เบิกเงิน')" data-cat="เบิกเงิน" class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
-                <i class="fa-solid fa-hand-holding-dollar text-sm text-amber-600"></i> <span>เบิกเงิน</span>
-              </button>
-              <button type="button" onclick="selectCategory('เชื้อเพลิง')" data-cat="เชื้อเพลิง" class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
-                <i class="fa-solid fa-gas-pump text-sm text-rose-600"></i> <span>เชื้อเพลิง</span>
-              </button>
-              <button type="button" onclick="selectCategory('ล้างรถ')" data-cat="ล้างรถ" class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
-                <i class="fa-solid fa-soap text-sm text-cyan-600"></i> <span>ล้างรถ</span>
-              </button>
-              <button type="button" onclick="selectCategory('ซ่อมรถ')" data-cat="ซ่อมรถ" class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
-                <i class="fa-solid fa-screwdriver-wrench text-sm text-orange-600"></i> <span>ซ่อมรถ</span>
-              </button>
-              <button type="button" onclick="selectCategory('คืนเงิน')" data-cat="คืนเงิน" class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
-                <i class="fa-solid fa-rotate-left text-sm text-emerald-600"></i> <span>คืนเงิน</span>
-              </button>
-              <button type="button" onclick="selectCategory('ฝากซื้อของ')" data-cat="ฝากซื้อของ" class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
-                <i class="fa-solid fa-bag-shopping text-sm text-purple-600"></i> <span>ฝากซื้อของ</span>
-              </button>
-              <button type="button" onclick="selectCategory('อื่นๆ')" data-cat="อื่นๆ" class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
-                <i class="fa-solid fa-ellipsis text-sm text-slate-600"></i> <span>อื่นๆ</span>
-              </button>
+            <label for="category" class="block text-sm font-semibold text-gray-700 mb-1.5">ประเภท <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <select id="category" required onchange="selectCategory(this.value)" class="w-full appearance-none rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 pr-10 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none cursor-pointer transition">
+                <option value="วิ่งงานรถ">🚚 วิ่งงานรถ</option>
+                <option value="เบิกเงิน">💵 เบิกเงิน</option>
+                <option value="เชื้อเพลิง">⛽ เชื้อเพลิง</option>
+                <option value="ล้างรถ">🧼 ล้างรถ</option>
+                <option value="ซ่อมรถ">🔧 ซ่อมรถ</option>
+                <option value="คืนเงิน">↩️ คืนเงิน</option>
+                <option value="ฝากซื้อของ">🛍️ ฝากซื้อของ</option>
+                <option value="อื่นๆ">📋 อื่นๆ</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-gray-500">
+                <i class="fa-solid fa-chevron-down text-xs"></i>
+              </div>
             </div>
-            <input type="hidden" id="category" value="วิ่งงานรถ" required>
           </div>
 
           <!-- พื้นที่ Dynamic ตามประเภทที่เลือก (Section 2 - 14) -->
@@ -292,14 +280,6 @@
 
     function selectCategory(catId) {
       document.getElementById('category').value = catId;
-      const buttons = document.querySelectorAll('.cat-btn');
-      buttons.forEach(function(btn) {
-        if (btn.getAttribute('data-cat') === catId) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
       renderDynamicFields(catId);
     }
 
