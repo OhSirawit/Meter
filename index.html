@@ -9,8 +9,16 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
-    .fade-in { animation: fadeIn 0.25s ease-in-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.2s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+    .cat-btn.active {
+      border-width: 2px;
+      border-color: #4f46e5;
+      background-color: #eef2ff;
+      color: #4338ca;
+      font-weight: 700;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
   </style>
 </head>
 <body class="min-h-screen pb-12 text-gray-800">
@@ -31,10 +39,10 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button onclick="fetchFromSheet()" class="bg-white/15 hover:bg-white/25 text-white text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5">
+        <button type="button" onclick="fetchFromSheet()" class="bg-white/15 hover:bg-white/25 text-white text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5">
           <i class="fa-solid fa-rotate" id="refreshIcon"></i> ซิงค์ข้อมูล
         </button>
-        <button onclick="exportCSV()" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs px-3 py-2 rounded-lg font-semibold shadow-sm transition flex items-center gap-1.5">
+        <button type="button" onclick="exportCSV()" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs px-3 py-2 rounded-lg font-semibold shadow-sm transition flex items-center gap-1.5">
           <i class="fa-solid fa-file-excel"></i> ส่งออก CSV
         </button>
       </div>
@@ -60,17 +68,76 @@
             <input type="date" id="date" required class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
           </div>
 
-          <!-- ประเภท (Section 1) -->
+          <!-- ประเภท (ฝัง HTML โดยตรง ไม่หายแน่นอน) -->
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">ประเภท <span class="text-red-500">*</span></label>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="categoryGrid">
-              <!-- สร้างปุ่มด้วย JS -->
+              <button type="button" onclick="selectCategory('วิ่งงานรถ')" data-cat="วิ่งงานรถ" class="cat-btn active flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
+                <i class="fa-solid fa-truck-fast text-sm text-indigo-600"></i> <span>วิ่งงานรถ</span>
+              </button>
+              <button type="button" onclick="selectCategory('เบิกเงิน')" data-cat="เบิกเงิน" class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
+                <i class="fa-solid fa-hand-holding-dollar text-sm text-amber-600"></i> <span>เบิกเงิน</span>
+              </button>
+              <button type="button" onclick="selectCategory('เชื้อเพลิง')" data-cat="เชื้อเพลิง" class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
+                <i class="fa-solid fa-gas-pump text-sm text-rose-600"></i> <span>เชื้อเพลิง</span>
+              </button>
+              <button type="button" onclick="selectCategory('ล้างรถ')" data-cat="ล้างรถ" class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
+                <i class="fa-solid fa-soap text-sm text-cyan-600"></i> <span>ล้างรถ</span>
+              </button>
+              <button type="button" onclick="selectCategory('ซ่อมรถ')" data-cat="ซ่อมรถ" class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
+                <i class="fa-solid fa-screwdriver-wrench text-sm text-orange-600"></i> <span>ซ่อมรถ</span>
+              </button>
+              <button type="button" onclick="selectCategory('คืนเงิน')" data-cat="คืนเงิน" class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
+                <i class="fa-solid fa-rotate-left text-sm text-emerald-600"></i> <span>คืนเงิน</span>
+              </button>
+              <button type="button" onclick="selectCategory('ฝากซื้อของ')" data-cat="ฝากซื้อของ" class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
+                <i class="fa-solid fa-bag-shopping text-sm text-purple-600"></i> <span>ฝากซื้อของ</span>
+              </button>
+              <button type="button" onclick="selectCategory('อื่นๆ')" data-cat="อื่นๆ" class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition text-left">
+                <i class="fa-solid fa-ellipsis text-sm text-slate-600"></i> <span>อื่นๆ</span>
+              </button>
             </div>
-            <input type="hidden" id="category" required>
+            <input type="hidden" id="category" value="วิ่งงานรถ" required>
           </div>
 
           <!-- พื้นที่ Dynamic ตามประเภทที่เลือก (Section 2 - 14) -->
-          <div id="dynamicSection" class="hidden fade-in bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4"></div>
+          <div id="dynamicSection" class="fade-in bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+            <!-- ค่าเริ่มต้น: วิ่งงานรถ -->
+            <div class="text-xs font-bold text-indigo-900 border-b border-indigo-200 pb-1.5">ส่วนที่ 2: รายละเอียดวิ่งงานรถ</div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">ค่าวิ่งงาน [฿] <span class="text-red-500">*</span></label>
+                <input type="number" step="0.01" id="runFee" required placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">เก็บเงินสด [฿] <span class="text-red-500">*</span></label>
+                <input type="number" step="0.01" id="cashCollected" required placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">ค่าทางด่วน [฿]</label>
+                <input type="number" step="0.01" id="tollFee" placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">ค่าจอดรถ [฿]</label>
+                <input type="number" step="0.01" id="parkingFee" placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-200">
+              <label class="block text-xs font-semibold text-gray-700 mb-1.5">💰 Tips 💰 <span class="text-red-500">*</span></label>
+              <div class="flex gap-4">
+                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="radio" name="hasTips" value="yes" onchange="toggleTipsInput(true)" required> 👍 มีทิป
+                </label>
+                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="radio" name="hasTips" value="no" onchange="toggleTipsInput(false)" checked> 👎 ไม่มีทิป
+                </label>
+              </div>
+              <div id="tipsBox" class="hidden mt-3">
+                <label class="block text-xs font-semibold text-gray-700 mb-1">จำนวนเงิน Tips [฿] (Section 14) <span class="text-red-500">*</span></label>
+                <input type="number" step="0.01" id="tipsAmount" placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">
+              </div>
+            </div>
+          </div>
 
           <!-- รายละเอียด -->
           <div>
@@ -164,7 +231,7 @@
           <span class="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full font-semibold" id="recordCount">0 รายการ</span>
         </div>
         <div id="historyList" class="divide-y divide-gray-100 max-h-[520px] overflow-y-auto">
-          <p class="text-center text-gray-400 text-sm py-10">กำลังโหลดข้อมูล...</p>
+          <p class="text-center text-gray-400 text-sm py-10">ยังไม่มีรายการบันทึก</p>
         </div>
       </div>
     </section>
@@ -176,54 +243,39 @@
   </div>
 
   <script>
-    // ลิงก์ Web App URL ใหม่ล่าสุดของคุณ
+    // ลิงก์ Web App URL ของคุณ
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz5hTNdrpiutbN9PoB8Z3eKvGyKp2xJY6yB_HKbvC7TM7iTz-c4Ya46rHZPLC8wCZJQ/exec";
 
-    const CATEGORIES = [
-      { id: 'วิ่งงานรถ', icon: 'fa-truck-fast', color: 'indigo' },
-      { id: 'เบิกเงิน', icon: 'fa-hand-holding-dollar', color: 'amber' },
-      { id: 'เชื้อเพลิง', icon: 'fa-gas-pump', color: 'rose' },
-      { id: 'ล้างรถ', icon: 'fa-soap', color: 'cyan' },
-      { id: 'ซ่อมรถ', icon: 'fa-screwdriver-wrench', color: 'orange' },
-      { id: 'คืนเงิน', icon: 'fa-rotate-left', color: 'emerald' },
-      { id: 'ฝากซื้อของ', icon: 'fa-bag-shopping', color: 'purple' },
-      { id: 'อื่นๆ', icon: 'fa-ellipsis', color: 'slate' }
-    ];
+    let records = [];
+    try {
+      records = JSON.parse(localStorage.getItem('office_expenses_v1') || '[]');
+    } catch (e) {
+      records = [];
+    }
 
-    let records = JSON.parse(localStorage.getItem('office_expenses_v1') || '[]');
     let compressedBase64 = '';
     let compressedFileName = '';
     let cameraStream = null;
     let facingMode = 'environment';
 
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('date').valueAsDate = new Date();
-      renderCategories();
-      SelectCategory('วิ่งงานรถ');
+    // ตั้งค่าเริ่มต้นทันทีเมื่อเปิดหน้าเว็บ
+    window.addEventListener('DOMContentLoaded', function() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('date').value = today;
       renderHistory();
       fetchFromSheet();
     });
 
-    function renderCategories() {
-      const grid = document.getElementById('categoryGrid');
-      grid.innerHTML = CATEGORIES.map(c => `
-        <button type="button" onclick="SelectCategory('${c.id}')" id="cat_${c.id}"
-          class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border text-xs font-semibold transition text-left">
-          <i class="fa-solid ${c.icon} text-sm"></i>
-          <span>${c.id}</span>
-        </button>
-      `).join('');
-    }
-
-    function SelectCategory(catId) {
+    function selectCategory(catId) {
       document.getElementById('category').value = catId;
-      document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.className = 'cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition';
+      const buttons = document.querySelectorAll('.cat-btn');
+      buttons.forEach(function(btn) {
+        if (btn.getAttribute('data-cat') === catId) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
       });
-      const activeBtn = document.getElementById('cat_' + catId);
-      if (activeBtn) {
-        activeBtn.className = 'cat-btn flex items-center gap-2 p-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 text-xs font-bold transition shadow-sm';
-      }
       renderDynamicFields(catId);
     }
 
@@ -232,61 +284,61 @@
       box.classList.remove('hidden');
 
       if (catId === 'วิ่งงานรถ') {
-        box.innerHTML = `
-          <div class="text-xs font-bold text-indigo-900 border-b border-indigo-200 pb-1.5">ส่วนที่ 2: รายละเอียดวิ่งงานรถ</div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">ค่าวิ่งงาน [฿] <span class="text-red-500">*</span></label>
-              <input type="number" step="0.01" id="runFee" required placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">เก็บเงินสด [฿] <span class="text-red-500">*</span></label>
-              <input type="number" step="0.01" id="cashCollected" required placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">ค่าทางด่วน [฿]</label>
-              <input type="number" step="0.01" id="tollFee" placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">ค่าจอดรถ [฿]</label>
-              <input type="number" step="0.01" id="parkingFee" placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            </div>
-          </div>
-          <div class="pt-2 border-t border-slate-200">
-            <label class="block text-xs font-semibold text-gray-700 mb-1.5">💰 Tips 💰 <span class="text-red-500">*</span></label>
-            <div class="flex gap-4">
-              <label class="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="radio" name="hasTips" value="yes" onchange="toggleTipsInput(true)" required> 👍 มีทิป
-              </label>
-              <label class="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="radio" name="hasTips" value="no" onchange="toggleTipsInput(false)" checked> 👎 ไม่มีทิป
-              </label>
-            </div>
-            <div id="tipsBox" class="hidden mt-3">
-              <label class="block text-xs font-semibold text-gray-700 mb-1">จำนวนเงิน Tips [฿] (Section 14) <span class="text-red-500">*</span></label>
-              <input type="number" step="0.01" id="tipsAmount" placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            </div>
-          </div>
-        `;
+        box.innerHTML = [
+          '<div class="text-xs font-bold text-indigo-900 border-b border-indigo-200 pb-1.5">ส่วนที่ 2: รายละเอียดวิ่งงานรถ</div>',
+          '<div class="grid grid-cols-2 gap-3">',
+          '  <div>',
+          '    <label class="block text-xs font-semibold text-gray-700 mb-1">ค่าวิ่งงาน [฿] <span class="text-red-500">*</span></label>',
+          '    <input type="number" step="0.01" id="runFee" required placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">',
+          '  </div>',
+          '  <div>',
+          '    <label class="block text-xs font-semibold text-gray-700 mb-1">เก็บเงินสด [฿] <span class="text-red-500">*</span></label>',
+          '    <input type="number" step="0.01" id="cashCollected" required placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">',
+          '  </div>',
+          '  <div>',
+          '    <label class="block text-xs font-semibold text-gray-700 mb-1">ค่าทางด่วน [฿]</label>',
+          '    <input type="number" step="0.01" id="tollFee" placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">',
+          '  </div>',
+          '  <div>',
+          '    <label class="block text-xs font-semibold text-gray-700 mb-1">ค่าจอดรถ [฿]</label>',
+          '    <input type="number" step="0.01" id="parkingFee" placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">',
+          '  </div>',
+          '</div>',
+          '<div class="pt-2 border-t border-slate-200">',
+          '  <label class="block text-xs font-semibold text-gray-700 mb-1.5">💰 Tips 💰 <span class="text-red-500">*</span></label>',
+          '  <div class="flex gap-4">',
+          '    <label class="flex items-center gap-2 text-sm cursor-pointer">',
+          '      <input type="radio" name="hasTips" value="yes" onchange="toggleTipsInput(true)" required> 👍 มีทิป',
+          '    </label>',
+          '    <label class="flex items-center gap-2 text-sm cursor-pointer">',
+          '      <input type="radio" name="hasTips" value="no" onchange="toggleTipsInput(false)" checked> 👎 ไม่มีทิป',
+          '    </label>',
+          '  </div>',
+          '  <div id="tipsBox" class="hidden mt-3">',
+          '    <label class="block text-xs font-semibold text-gray-700 mb-1">จำนวนเงิน Tips [฿] (Section 14) <span class="text-red-500">*</span></label>',
+          '    <input type="number" step="0.01" id="tipsAmount" placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">',
+          '  </div>',
+          '</div>'
+        ].join('');
       } else if (catId === 'เชื้อเพลิง') {
-        box.innerHTML = `
-          <div class="text-xs font-bold text-indigo-900 border-b border-indigo-200 pb-1.5">ส่วนที่ 4: เลือกชนิดเชื้อเพลิง</div>
-          <div class="grid grid-cols-3 gap-2">
-            <label class="border rounded-lg p-2.5 text-center text-xs font-bold cursor-pointer bg-white hover:bg-indigo-50">
-              <input type="radio" name="fuelType" value="E20" checked onchange="updateFuelLabel('E20')" class="mr-1"> E20
-            </label>
-            <label class="border rounded-lg p-2.5 text-center text-xs font-bold cursor-pointer bg-white hover:bg-indigo-50">
-              <input type="radio" name="fuelType" value="LPG" onchange="updateFuelLabel('LPG')" class="mr-1"> LPG
-            </label>
-            <label class="border rounded-lg p-2.5 text-center text-xs font-bold cursor-pointer bg-white hover:bg-indigo-50">
-              <input type="radio" name="fuelType" value="NGV" onchange="updateFuelLabel('NGV')" class="mr-1"> NGV
-            </label>
-          </div>
-          <div>
-            <label id="fuelAmountLabel" class="block text-xs font-semibold text-gray-700 mb-1">E20 [฿] <span class="text-red-500">*</span></label>
-            <input type="number" step="0.01" id="singleAmount" required placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-          </div>
-        `;
+        box.innerHTML = [
+          '<div class="text-xs font-bold text-indigo-900 border-b border-indigo-200 pb-1.5">ส่วนที่ 4: เลือกชนิดเชื้อเพลิง</div>',
+          '<div class="grid grid-cols-3 gap-2">',
+          '  <label class="border rounded-lg p-2.5 text-center text-xs font-bold cursor-pointer bg-white hover:bg-indigo-50">',
+          '    <input type="radio" name="fuelType" value="E20" checked onchange="updateFuelLabel(\'E20\')" class="mr-1"> E20',
+          '  </label>',
+          '  <label class="border rounded-lg p-2.5 text-center text-xs font-bold cursor-pointer bg-white hover:bg-indigo-50">',
+          '    <input type="radio" name="fuelType" value="LPG" onchange="updateFuelLabel(\'LPG\')" class="mr-1"> LPG',
+          '  </label>',
+          '  <label class="border rounded-lg p-2.5 text-center text-xs font-bold cursor-pointer bg-white hover:bg-indigo-50">',
+          '    <input type="radio" name="fuelType" value="NGV" onchange="updateFuelLabel(\'NGV\')" class="mr-1"> NGV',
+          '  </label>',
+          '</div>',
+          '<div>',
+          '  <label id="fuelAmountLabel" class="block text-xs font-semibold text-gray-700 mb-1">E20 [฿] <span class="text-red-500">*</span></label>',
+          '  <input type="number" step="0.01" id="singleAmount" required placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">',
+          '</div>'
+        ].join('');
       } else {
         const labelMap = {
           'เบิกเงิน': 'เบิกเงิน [฿]',
@@ -296,12 +348,13 @@
           'ฝากซื้อของ': 'ซื้อของ [฿]',
           'อื่นๆ': 'อื่นๆ [฿]'
         };
-        box.innerHTML = `
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">${labelMap[catId] || 'จำนวนเงิน [฿]'} <span class="text-red-500">*</span></label>
-            <input type="number" step="0.01" id="singleAmount" required placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-          </div>
-        `;
+        const title = labelMap[catId] || 'จำนวนเงิน [฿]';
+        box.innerHTML = [
+          '<div>',
+          '  <label class="block text-xs font-semibold text-gray-700 mb-1">' + title + ' <span class="text-red-500">*</span></label>',
+          '  <input type="number" step="0.01" id="singleAmount" required placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">',
+          '</div>'
+        ].join('');
       }
     }
 
@@ -319,7 +372,7 @@
     }
 
     function updateFuelLabel(type) {
-      document.getElementById('fuelAmountLabel').innerHTML = `${type} [฿] <span class="text-red-500">*</span>`;
+      document.getElementById('fuelAmountLabel').innerHTML = type + ' [฿] <span class="text-red-500">*</span>';
     }
 
     function getCurrentLocation() {
@@ -329,24 +382,24 @@
         return;
       }
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังหาพิกัด...';
-      navigator.geolocation.getCurrentPosition(async (pos) => {
+      navigator.geolocation.getCurrentPosition(async function(pos) {
         const lat = pos.coords.latitude.toFixed(6);
         const lng = pos.coords.longitude.toFixed(6);
         document.getElementById('lat').value = lat;
         document.getElementById('lng').value = lng;
         const coordsEl = document.getElementById('gpsCoordsText');
         coordsEl.classList.remove('hidden');
-        coordsEl.innerHTML = `พิกัด: <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="text-indigo-600 underline">${lat}, ${lng}</a>`;
+        coordsEl.innerHTML = 'พิกัด: <a href="https://www.google.com/maps?q=' + lat + ',' + lng + '" target="_blank" class="text-indigo-600 underline">' + lat + ', ' + lng + '</a>';
 
         try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=th`);
+          const res = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&accept-language=th');
           const data = await res.json();
           if (data && data.display_name && !document.getElementById('locationName').value) {
             document.getElementById('locationName').value = data.display_name.split(',').slice(0, 3).join(', ');
           }
         } catch (e) {}
         btn.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i> ดึงพิกัดสำเร็จ';
-      }, () => {
+      }, function() {
         alert('ไม่สามารถดึงพิกัดได้ กรุณาอนุญาตการเข้าถึงตำแหน่งที่ตั้ง (Location)');
         btn.innerHTML = '<i class="fa-solid fa-crosshairs"></i> ดึงพิกัดปัจจุบัน';
       }, { enableHighAccuracy: true, timeout: 10000 });
@@ -356,8 +409,8 @@
       const box = document.getElementById('cameraBox');
       const video = document.getElementById('cameraVideo');
       try {
-        if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
-        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
+        if (cameraStream) cameraStream.getTracks().forEach(function(t) { t.stop(); });
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
         video.srcObject = cameraStream;
         box.classList.remove('hidden');
       } catch (err) {
@@ -372,7 +425,7 @@
     }
 
     function closeCamera() {
-      if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+      if (cameraStream) cameraStream.getTracks().forEach(function(t) { t.stop(); });
       document.getElementById('cameraBox').classList.add('hidden');
     }
 
@@ -383,20 +436,20 @@
       canvas.height = video.videoHeight;
       canvas.getContext('2d').drawImage(video, 0, 0);
       closeCamera();
-      compressImageFromSource(canvas.toDataURL('image/jpeg'), `camera_${Date.now()}.jpg`);
+      compressImageFromSource(canvas.toDataURL('image/jpeg'), 'camera_' + Date.now() + '.jpg');
     }
 
     function handleFileSelect(e) {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (ev) => compressImageFromSource(ev.target.result, file.name);
+      reader.onload = function(ev) { compressImageFromSource(ev.target.result, file.name); };
       reader.readAsDataURL(file);
     }
 
     function compressImageFromSource(dataUrl, fileName) {
       const img = new Image();
-      img.onload = () => {
+      img.onload = function() {
         const MAX_SIDE = 1200;
         let w = img.width, h = img.height;
         if (w > h && w > MAX_SIDE) { h = Math.round(h * (MAX_SIDE / w)); w = MAX_SIDE; }
@@ -407,12 +460,12 @@
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
 
         compressedBase64 = canvas.toDataURL('image/jpeg', 0.72);
-        compressedFileName = fileName.replace(/\.[^/.]+$/, "") + ".jpg";
+        compressedFileName = fileName.replace(/\.[^/.]+$/, '') + '.jpg';
 
         const kb = Math.round((compressedBase64.length * 3 / 4) / 1024);
         document.getElementById('previewImg').src = compressedBase64;
         document.getElementById('previewName').textContent = compressedFileName;
-        document.getElementById('previewSize').textContent = `ขนาดหลังบีบอัด: ~${kb} KB`;
+        document.getElementById('previewSize').textContent = 'ขนาดหลังบีบอัด: ~' + kb + ' KB';
         document.getElementById('previewBox').classList.remove('hidden');
       };
       img.src = dataUrl;
@@ -428,6 +481,16 @@
     function viewFullImage(src) {
       document.getElementById('modalImgSrc').src = src;
       document.getElementById('imgModal').classList.remove('hidden');
+    }
+
+    function openSlipByIndex(idx) {
+      const r = records[idx];
+      if (!r) return;
+      if (r.fileUrl && r.fileUrl.indexOf('http') === 0) {
+        window.open(r.fileUrl, '_blank');
+      } else if (r.imageBase64) {
+        viewFullImage(r.imageBase64);
+      }
     }
 
     async function handleSubmit(e) {
@@ -447,8 +510,9 @@
         category: cat,
         details: document.getElementById('details').value,
         locationName: document.getElementById('locationName').value || '',
-        lat, lng,
-        mapUrl: (lat && lng) ? `https://www.google.com/maps?q=${lat},${lng}` : '',
+        lat: lat,
+        lng: lng,
+        mapUrl: (lat && lng) ? ('https://www.google.com/maps?q=' + lat + ',' + lng) : '',
         runFee: 0, cashCollected: 0, tollFee: 0, parkingFee: 0, tips: 0,
         fuelType: '', fuelAmount: 0, amount: 0,
         netExpense: 0, cashIn: 0,
@@ -461,11 +525,13 @@
         item.cashCollected = parseFloat(document.getElementById('cashCollected').value || 0);
         item.tollFee = parseFloat(document.getElementById('tollFee').value || 0);
         item.parkingFee = parseFloat(document.getElementById('parkingFee').value || 0);
-        item.tips = parseFloat(document.getElementById('tipsAmount')?.value || 0);
+        const tipsEl = document.getElementById('tipsAmount');
+        item.tips = parseFloat(tipsEl ? (tipsEl.value || 0) : 0);
         item.netExpense = item.runFee + item.tollFee + item.parkingFee + item.tips;
         item.cashIn = item.cashCollected;
       } else if (cat === 'เชื้อเพลิง') {
-        item.fuelType = document.querySelector('input[name="fuelType"]:checked').value;
+        const checkedFuel = document.querySelector('input[name="fuelType"]:checked');
+        item.fuelType = checkedFuel ? checkedFuel.value : 'E20';
         item.fuelAmount = parseFloat(document.getElementById('singleAmount').value || 0);
         item.netExpense = item.fuelAmount;
       } else if (cat === 'คืนเงิน') {
@@ -494,7 +560,7 @@
 
           document.getElementById('details').value = '';
           clearImage();
-          SelectCategory(cat);
+          selectCategory(cat);
           btn.innerHTML = '<i class="fa-solid fa-check"></i> บันทึกลง Google Sheet สำเร็จ!';
         } else {
           alert('❌ เกิดข้อผิดพลาดจาก Google Sheet:\n' + (result.message || 'ไม่ทราบสาเหตุ'));
@@ -506,7 +572,7 @@
         btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> บันทึกข้อมูลลง Google Sheet';
       } finally {
         btn.disabled = false;
-        setTimeout(() => {
+        setTimeout(function() {
           btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> บันทึกข้อมูลลง Google Sheet';
         }, 2500);
       }
@@ -516,7 +582,7 @@
       const icon = document.getElementById('refreshIcon');
       icon.classList.add('fa-spin');
       try {
-        const res = await fetch(`${GAS_WEB_APP_URL}?action=getExpenses`, { redirect: 'follow' });
+        const res = await fetch(GAS_WEB_APP_URL + '?action=getExpenses', { redirect: 'follow' });
         const json = await res.json();
         if (json && json.status === 'success' && Array.isArray(json.data)) {
           records = json.data;
@@ -532,61 +598,76 @@
 
     function renderHistory() {
       const list = document.getElementById('historyList');
-      document.getElementById('recordCount').textContent = `${records.length} รายการ`;
+      document.getElementById('recordCount').textContent = records.length + ' รายการ';
 
       let totalExp = 0, totalCash = 0;
-      records.forEach(r => {
+      records.forEach(function(r) {
         totalExp += Number(r.netExpense || 0);
         totalCash += Number(r.cashIn || 0);
       });
 
-      document.getElementById('sumExpense').textContent = `฿${totalExp.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`;
-      document.getElementById('sumCashIn').textContent = `฿${totalCash.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`;
+      document.getElementById('sumExpense').textContent = '฿' + totalExp.toLocaleString('th-TH', { minimumFractionDigits: 2 });
+      document.getElementById('sumCashIn').textContent = '฿' + totalCash.toLocaleString('th-TH', { minimumFractionDigits: 2 });
 
       if (records.length === 0) {
-        list.innerHTML = `<p class="text-center text-gray-400 text-sm py-10">ยังไม่มีรายการบันทึก</p>`;
+        list.innerHTML = '<p class="text-center text-gray-400 text-sm py-10">ยังไม่มีรายการบันทึก</p>';
         return;
       }
 
-      list.innerHTML = records.map(r => `
-        <div class="p-4 hover:bg-gray-50 transition flex items-start justify-between gap-3">
-          <div class="space-y-1">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">${r.category}${r.fuelType ? ` (${r.fuelType})` : ''}</span>
-              <span class="text-xs text-gray-400">${r.date || ''}</span>
-            </div>
-            <p class="text-sm font-medium text-gray-800">${r.details || '-'}</p>
-            ${r.locationName || r.mapUrl ? `
-              <a href="${r.mapUrl || '#'}" target="_blank" class="inline-flex items-center gap-1 text-[11px] text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
-                <i class="fa-solid fa-location-dot"></i> ${r.locationName || 'ดูแผนที่ GPS'}
-              </a>
-            ` : ''}
-          </div>
-          <div class="text-right shrink-0">
-            ${r.netExpense > 0 ? `<p class="text-sm font-bold text-rose-600">-฿${Number(r.netExpense).toLocaleString()}</p>` : ''}
-            ${r.cashIn > 0 ? `<p class="text-xs font-semibold text-emerald-600">+฿${Number(r.cashIn).toLocaleString()}</p>` : ''}
-            ${(r.imageBase64 || r.fileUrl) ? `
-              <a href="${r.fileUrl \vert{}\vert{} '#'}" onclick="${r.fileUrl ? '' : `viewFullImage('${r.imageBase64}'); return false;`}" target="_blank" class="mt-1 inline-block text-[11px] text-indigo-600 underline">
-                <i class="fa-solid fa-receipt"></i> ดูสลิป
-              </a>
-            ` : ''}
-          </div>
-        </div>
-      `).join('');
+      list.innerHTML = records.map(function(r, idx) {
+        const fuelBadge = r.fuelType ? (' (' + r.fuelType + ')') : '';
+        const locHtml = (r.locationName || r.mapUrl)
+          ? '<a href="' + (r.mapUrl || '#') + '" target="_blank" class="inline-flex items-center gap-1 text-[11px] text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200"><i class="fa-solid fa-location-dot"></i> ' + (r.locationName || 'ดูแผนที่ GPS') + '</a>'
+          : '';
+        const expHtml = Number(r.netExpense) > 0
+          ? '<p class="text-sm font-bold text-rose-600">-฿' + Number(r.netExpense).toLocaleString() + '</p>'
+          : '';
+        const cashHtml = Number(r.cashIn) > 0
+          ? '<p class="text-xs font-semibold text-emerald-600">+฿' + Number(r.cashIn).toLocaleString() + '</p>'
+          : '';
+        const slipHtml = (r.imageBase64 || r.fileUrl)
+          ? '<button type="button" onclick="openSlipByIndex(' + idx + ')" class="mt-1 inline-block text-[11px] text-indigo-600 underline"><i class="fa-solid fa-receipt"></i> ดูสลิป</button>'
+          : '';
+
+        return [
+          '<div class="p-4 hover:bg-gray-50 transition flex items-start justify-between gap-3">',
+          '  <div class="space-y-1">',
+          '    <div class="flex items-center gap-2">',
+          '      <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">' + r.category + fuelBadge + '</span>',
+          '      <span class="text-xs text-gray-400">' + (r.date || '') + '</span>',
+          '    </div>',
+          '    <p class="text-sm font-medium text-gray-800">' + (r.details || '-') + '</p>',
+          '    ' + locHtml,
+          '  </div>',
+          '  <div class="text-right shrink-0">',
+          '    ' + expHtml,
+          '    ' + cashHtml,
+          '    ' + slipHtml,
+          '  </div>',
+          '</div>'
+        ].join('');
+      }).join('');
     }
 
     function exportCSV() {
       if (records.length === 0) return alert('ยังไม่มีข้อมูลสำหรับส่งออก');
       const headers = ['วันที่', 'ประเภท', 'รายละเอียด', 'สถานที่', 'พิกัดแผนที่', 'รายจ่ายสุทธิ', 'รายรับ/เงินสด'];
-      const rows = records.map(r => [
-        r.date, r.category, `"${(r.details || '').replace(/"/g, '""')}"`,
-        `"${(r.locationName || '').replace(/"/g, '""')}"`, r.mapUrl || '', r.netExpense || 0, r.cashIn || 0
-      ]);
-      const csv = '\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+      const rows = records.map(function(r) {
+        return [
+          r.date,
+          r.category,
+          '"' + String(r.details || '').replace(/"/g, '""') + '"',
+          '"' + String(r.locationName || '').replace(/"/g, '""') + '"',
+          r.mapUrl || '',
+          r.netExpense || 0,
+          r.cashIn || 0
+        ];
+      });
+      const csv = '\uFEFF' + [headers.join(',')].concat(rows.map(function(e) { return e.join(','); })).join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `office_expenses_${new Date().toISOString().slice(0,10)}.csv`;
+      a.download = 'office_expenses_' + new Date().toISOString().slice(0, 10) + '.csv';
       a.click();
     }
   </script>
