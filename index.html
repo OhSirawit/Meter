@@ -176,8 +176,8 @@
   </div>
 
   <script>
-    // ลิงก์ Web App URL ของคุณที่ฝังไว้เรียบร้อยแล้ว
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwGSpCremeaCz1J7RGrfbhkjtz0UXf8gekJG82qvkC9xet70tST8NP1WHg7N1EmMBpU/exec";
+    // ลิงก์ Web App URL ใหม่ล่าสุดของคุณ
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz5hTNdrpiutbN9PoB8Z3eKvGyKp2xJY6yB_HKbvC7TM7iTz-c4Ya46rHZPLC8wCZJQ/exec";
 
     const CATEGORIES = [
       { id: 'วิ่งงานรถ', icon: 'fa-truck-fast', color: 'indigo' },
@@ -322,7 +322,6 @@
       document.getElementById('fuelAmountLabel').innerHTML = `${type} [฿] <span class="text-red-500">*</span>`;
     }
 
-    // ดึงพิกัด GPS ปัจจุบัน
     function getCurrentLocation() {
       const btn = document.getElementById('gpsBtn');
       if (!navigator.geolocation) {
@@ -353,7 +352,6 @@
       }, { enableHighAccuracy: true, timeout: 10000 });
     }
 
-    // ระบบกล้องและบีบอัดรูปภาพ
     async function openCamera() {
       const box = document.getElementById('cameraBox');
       const video = document.getElementById('cameraVideo');
@@ -432,12 +430,11 @@
       document.getElementById('imgModal').classList.remove('hidden');
     }
 
-    // บันทึกข้อมูล
     async function handleSubmit(e) {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึกข้อมูล...';
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังส่งข้อมูลเข้า Google Sheet...';
 
       const cat = document.getElementById('category').value;
       const lat = document.getElementById('lat').value;
@@ -479,41 +476,53 @@
         item.netExpense = item.amount;
       }
 
-      records.unshift(item);
-      localStorage.setItem('office_expenses_v1', JSON.stringify(records));
-      renderHistory();
-
       try {
-        await fetch(GAS_WEB_APP_URL, {
+        const response = await fetch(GAS_WEB_APP_URL, {
           method: 'POST',
-          mode: 'no-cors',
+          redirect: 'follow',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'saveExpense', data: item })
         });
-      } catch (err) {
-        console.warn('Sync warning:', err);
-      }
 
-      document.getElementById('details').value = '';
-      clearImage();
-      SelectCategory(cat);
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-check"></i> บันทึกเรียบร้อย!';
-      setTimeout(() => {
+        const result = await response.json();
+
+        if (result.status === 'success') {
+          if (result.fileUrl) item.fileUrl = result.fileUrl;
+          records.unshift(item);
+          localStorage.setItem('office_expenses_v1', JSON.stringify(records));
+          renderHistory();
+
+          document.getElementById('details').value = '';
+          clearImage();
+          SelectCategory(cat);
+          btn.innerHTML = '<i class="fa-solid fa-check"></i> บันทึกลง Google Sheet สำเร็จ!';
+        } else {
+          alert('❌ เกิดข้อผิดพลาดจาก Google Sheet:\n' + (result.message || 'ไม่ทราบสาเหตุ'));
+          btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ลองใหม่อีกครั้ง';
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        alert('⚠️ ไม่สามารถติดต่อ Google Sheet ได้ กรุณาตรวจสอบว่า:\n1. กด Run ฟังก์ชัน testConnection ใน Apps Script เพื่ออนุญาตสิทธิ์แล้ว\n2. ตั้งค่า Deploy > Who has access เป็น Anyone (ทุกคน) แล้ว');
         btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> บันทึกข้อมูลลง Google Sheet';
-      }, 1800);
+      } finally {
+        btn.disabled = false;
+        setTimeout(() => {
+          btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> บันทึกข้อมูลลง Google Sheet';
+        }, 2500);
+      }
     }
 
     async function fetchFromSheet() {
       const icon = document.getElementById('refreshIcon');
       icon.classList.add('fa-spin');
       try {
-        const res = await fetch(`${GAS_WEB_APP_URL}?action=getExpenses`);
+        const res = await fetch(`${GAS_WEB_APP_URL}?action=getExpenses`, { redirect: 'follow' });
         const json = await res.json();
-        if (json && Array.isArray(json.data) && json.data.length > 0) {
+        if (json && json.status === 'success' && Array.isArray(json.data)) {
           records = json.data;
           localStorage.setItem('office_expenses_v1', JSON.stringify(records));
           renderHistory();
+          document.getElementById('syncText').textContent = 'ซิงค์กับ Google Sheet ล่าสุดแล้ว';
         }
       } catch (e) {
         console.log('ใช้ข้อมูล LocalStorage ล่าสุด');
@@ -557,9 +566,9 @@
             ${r.netExpense > 0 ? `<p class="text-sm font-bold text-rose-600">-฿${Number(r.netExpense).toLocaleString()}</p>` : ''}
             ${r.cashIn > 0 ? `<p class="text-xs font-semibold text-emerald-600">+฿${Number(r.cashIn).toLocaleString()}</p>` : ''}
             ${(r.imageBase64 || r.fileUrl) ? `
-              <button onclick="viewFullImage('${r.imageBase64 || r.fileUrl}')" class="mt-1 text-[11px] text-indigo-600 underline">
+              <a href="${r.fileUrl \vert{}\vert{} '#'}" onclick="${r.fileUrl ? '' : `viewFullImage('${r.imageBase64}'); return false;`}" target="_blank" class="mt-1 inline-block text-[11px] text-indigo-600 underline">
                 <i class="fa-solid fa-receipt"></i> ดูสลิป
-              </button>
+              </a>
             ` : ''}
           </div>
         </div>
