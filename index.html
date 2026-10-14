@@ -1,1390 +1,585 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบบันทึกค่าใช้จ่ายออฟฟิศ</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <style>
-        body {
-            font-family: 'Prompt', sans-serif;
-            background-color: #f8fafc;
-        }
-        .category-card input:checked + div {
-            border-color: #4f46e5;
-            background-color: #eef2ff;
-            color: #4338ca;
-            box-shadow: 0 4px 12px -2px rgba(79, 70, 229, 0.18);
-        }
-        .fuel-card input:checked + div {
-            border-color: #d97706;
-            background-color: #fffbeb;
-            color: #b45309;
-        }
-        .tips-card input:checked + div {
-            border-color: #10b981;
-            background-color: #ecfdf5;
-            color: #047857;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบบันทึกค่าใช้จ่ายออฟฟิศ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
+    .fade-in { animation: fadeIn 0.25s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
 </head>
-<body class="min-h-screen text-slate-800 pb-12">
+<body class="min-h-screen pb-12 text-gray-800">
 
-    <header class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-violet-600 text-white shadow-lg sticky top-0 z-30">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center space-x-3">
-                <div class="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shadow-inner">
-                    <i class="ph ph-receipt text-2xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-lg sm:text-xl font-bold tracking-tight">ค่าใช้จ่ายออฟฟิศ</h1>
-                    <p class="text-xs text-indigo-100">ระบบบันทึกค่าใช้จ่ายประจำวัน พร้อมแนบสลิปและพิกัด GPS</p>
-                </div>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <a href="https://docs.google.com/spreadsheets/d/1ShKjTR3FVVYUyu5EKimiOGO77vr38KO_vaYHQ_3Ro2k/edit" target="_blank" rel="noopener noreferrer"
-                    class="bg-emerald-500/25 hover:bg-emerald-500/35 border border-emerald-300/30 active:scale-95 text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl flex items-center gap-1.5 transition backdrop-blur">
-                    <i class="ph ph-table text-lg text-emerald-300"></i>
-                    <span class="hidden sm:inline">เปิดดู Google Sheet</span>
-                </a>
-                <button onclick="openSheetConfigModal()" class="bg-white text-indigo-700 hover:bg-indigo-50 active:scale-95 text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition shadow-sm">
-                    <span id="sheetStatusDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <i class="ph ph-cloud-check text-lg"></i>
-                    <span id="sheetStatusBtnText">เชื่อม Sheet แล้ว</span>
-                </button>
-                <button onclick="fetchRecordsFromSheet()" class="bg-white/15 hover:bg-white/25 active:scale-95 text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl flex items-center gap-1.5 transition backdrop-blur" title="ดึงข้อมูลล่าสุดจาก Google Sheet">
-                    <i id="refreshSheetIcon" class="ph ph-arrows-clockwise text-lg text-sky-200"></i>
-                    <span class="hidden md:inline">รีเฟรชข้อมูล</span>
-                </button>
-                <button onclick="exportCSV()" class="bg-white/15 hover:bg-white/25 active:scale-95 text-white text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition backdrop-blur">
-                    <i class="ph ph-microsoft-excel-logo text-lg text-emerald-300"></i>
-                    <span class="hidden md:inline">CSV</span>
-                </button>
-            </div>
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-indigo-700 to-blue-600 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl">
+          <i class="fa-solid fa-file-invoice-dollar"></i>
         </div>
-    </header>
-
-    <main class="max-w-6xl mx-auto px-4 mt-6 space-y-6">
-        <!-- แถบสถานะการเชื่อมต่อ Google Sheet (ใส่ URL ให้เรียบร้อยแล้ว) -->
-        <div id="sheetBanner" class="bg-white border-2 border-emerald-500/30 rounded-3xl shadow-sm overflow-hidden">
-            <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 p-4 sm:px-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div class="flex items-start sm:items-center gap-3.5">
-                    <div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-                        <i class="ph ph-google-drive-logo text-2xl"></i>
-                    </div>
-                    <div class="min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <p class="text-sm sm:text-base font-bold text-emerald-950">เชื่อมต่อ Google Sheet อัตโนมัติแล้ว</p>
-                            <span id="bannerStatusBadge" class="text-[11px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-semibold">เชื่อมต่อพร้อมใช้งาน</span>
-                        </div>
-                        <p class="text-xs text-emerald-700 font-mono truncate mt-0.5">Sheet ID: 1ShKjTR3FVVYUyu5EKimiOGO77vr38KO_vaYHQ_3Ro2k</p>
-                    </div>
-                </div>
-
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 max-w-xl">
-                    <input type="url" id="quickGasUrlInput"
-                        value="https://script.google.com/macros/s/AKfycbwGSpCremeaCz1J7RGrfbhkjtz0UXf8gekJG82qvkC9xet70tST8NP1WHg7N1EmMBpU/exec"
-                        placeholder="วางลิงก์ Web App URL ที่นี่"
-                        class="flex-1 rounded-xl border border-emerald-300 px-3.5 py-2 text-xs bg-white focus:ring-2 focus:ring-emerald-500 outline-none font-mono text-slate-700">
-                    <div class="flex items-center gap-2 shrink-0">
-                        <button onclick="saveQuickGasUrl()" class="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center justify-center gap-1.5">
-                            <i class="ph ph-plugs-connected text-base"></i>
-                            <span>อัปเดตลิงก์</span>
-                        </button>
-                        <button onclick="syncAllUnsynced()" id="btnSyncAll" class="hidden text-xs bg-amber-500 hover:bg-amber-600 text-white px-3 py-2.5 rounded-xl font-semibold flex items-center gap-1 transition shadow-sm">
-                            <i class="ph ph-arrows-clockwise"></i>
-                            <span>ซิงค์ค้างส่ง</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <div>
+          <h1 class="text-xl font-bold leading-tight">ค่าใช้จ่ายออฟฟิศ</h1>
+          <p class="text-xs text-indigo-100 flex items-center gap-1.5">
+            <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="syncText">เชื่อมต่อ Google Sheet พร้อมใช้งาน</span>
+          </p>
         </div>
-
-        <!-- การ์ดสรุปยอด 4 กล่อง -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">รายการทั้งหมด</p>
-                    <p id="statTotalCount" class="text-xl sm:text-2xl font-bold text-slate-800 mt-0.5">0 รายการ</p>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
-                    <i class="ph ph-list-numbers text-xl"></i>
-                </div>
-            </div>
-
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">รวมค่าใช้จ่ายสุทธิ</p>
-                    <p id="statTotalExpense" class="text-xl sm:text-2xl font-bold text-rose-600 mt-0.5">฿0</p>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
-                    <i class="ph ph-trend-down text-xl"></i>
-                </div>
-            </div>
-
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">เก็บเงินสด / คืนเงิน</p>
-                    <p id="statTotalCashIn" class="text-xl sm:text-2xl font-bold text-emerald-600 mt-0.5">฿0</p>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <i class="ph ph-hand-coins text-xl"></i>
-                </div>
-            </div>
-
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">รวมทิป (Tips)</p>
-                    <p id="statTotalTips" class="text-xl sm:text-2xl font-bold text-amber-600 mt-0.5">฿0</p>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                    <i class="ph ph-coins text-xl"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            <div class="lg:col-span-5 bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
-                <div class="bg-slate-50 border-b border-slate-200/80 px-5 py-4 flex items-center justify-between">
-                    <div class="flex items-center space-x-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
-                        <h2 class="font-semibold text-slate-800">แบบฟอร์มบันทึกข้อมูล</h2>
-                    </div>
-                    <span class="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full font-medium">ครบ 14 Sections</span>
-                </div>
-
-                <form id="expenseForm" onsubmit="handleFormSubmit(event)" class="p-5 space-y-5">
-                    <!-- วันที่ (Section 1) -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
-                            วันที่ <span class="text-rose-500">*</span>
-                        </label>
-                        <input type="date" id="dateInput" required
-                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
-                    </div>
-
-                    <!-- ประเภท (Section 1) -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
-                            ประเภท <span class="text-rose-500">*</span>
-                        </label>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-2.5">
-                            <label class="category-card cursor-pointer">
-                                <input type="radio" name="category" value="วิ่งงานรถ" class="sr-only" onchange="handleCategoryChange()" checked>
-                                <div class="border border-slate-200 rounded-xl p-2.5 flex items-center space-x-2 transition hover:bg-slate-50">
-                                    <i class="ph ph-truck text-lg text-indigo-600"></i>
-                                    <span class="text-xs sm:text-sm font-medium">วิ่งงานรถ</span>
-                                </div>
-                            </label>
-                            <label class="category-card cursor-pointer">
-                                <input type="radio" name="category" value="เบิกเงิน" class="sr-only" onchange="handleCategoryChange()">
-                                <div class="border border-slate-200 rounded-xl p-2.5 flex items-center space-x-2 transition hover:bg-slate-50">
-                                    <i class="ph ph-wallet text-lg text-rose-500"></i>
-                                    <span class="text-xs sm:text-sm font-medium">เบิกเงิน</span>
-                                </div>
-                            </label>
-                            <label class="category-card cursor-pointer">
-                                <input type="radio" name="category" value="เชื้อเพลิง" class="sr-only" onchange="handleCategoryChange()">
-                                <div class="border border-slate-200 rounded-xl p-2.5 flex items-center space-x-2 transition hover:bg-slate-50">
-                                    <i class="ph ph-gas-pump text-lg text-amber-500"></i>
-                                    <span class="text-xs sm:text-sm font-medium">เชื้อเพลิง</span>
-                                </div>
-                            </label>
-                            <label class="category-card cursor-pointer">
-                                <input type="radio" name="category" value="ล้างรถ" class="sr-only" onchange="handleCategoryChange()">
-                                <div class="border border-slate-200 rounded-xl p-2.5 flex items-center space-x-2 transition hover:bg-slate-50">
-                                    <i class="ph ph-drop text-lg text-cyan-500"></i>
-                                    <span class="text-xs sm:text-sm font-medium">ล้างรถ</span>
-                                </div>
-                            </label>
-                            <label class="category-card cursor-pointer">
-                                <input type="radio" name="category" value="ซ่อมรถ" class="sr-only" onchange="handleCategoryChange()">
-                                <div class="border border-slate-200 rounded-xl p-2.5 flex items-center space-x-2 transition hover:bg-slate-50">
-                                    <i class="ph ph-wrench text-lg text-orange-500"></i>
-                                    <span class="text-xs sm:text-sm font-medium">ซ่อมรถ</span>
-                                </div>
-                            </label>
-                            <label class="category-card cursor-pointer">
-                                <input type="radio" name="category" value="คืนเงิน" class="sr-only" onchange="handleCategoryChange()">
-                                <div class="border border-slate-200 rounded-xl p-2.5 flex items-center space-x-2 transition hover:bg-slate-50">
-                                    <i class="ph ph-arrow-u-up-left text-lg text-emerald-500"></i>
-                                    <span class="text-xs sm:text-sm font-medium">คืนเงิน</span>
-                                </div>
-                            </label>
-                            <label class="category-card cursor-pointer">
-                                <input type="radio" name="category" value="ฝากซื้อของ" class="sr-only" onchange="handleCategoryChange()">
-                                <div class="border border-slate-200 rounded-xl p-2.5 flex items-center space-x-2 transition hover:bg-slate-50">
-                                    <i class="ph ph-shopping-bag text-lg text-purple-500"></i>
-                                    <span class="text-xs sm:text-sm font-medium">ฝากซื้อของ</span>
-                                </div>
-                            </label>
-                            <label class="category-card cursor-pointer">
-                                <input type="radio" name="category" value="อื่นๆ" class="sr-only" onchange="handleCategoryChange()">
-                                <div class="border border-slate-200 rounded-xl p-2.5 flex items-center space-x-2 transition hover:bg-slate-50">
-                                    <i class="ph ph-dots-three-circle text-lg text-slate-500"></i>
-                                    <span class="text-xs sm:text-sm font-medium">อื่นๆ</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Section 2 & 14: วิ่งงานรถ -->
-                    <div id="sectionVehicleRun" class="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-4 space-y-3.5">
-                        <div class="flex items-center justify-between border-b border-indigo-100 pb-2">
-                            <span class="text-xs font-semibold text-indigo-800 uppercase tracking-wider">ส่วนที่ 2: รายละเอียดวิ่งงานรถ</span>
-                            <span class="text-[11px] text-indigo-600">หน่วย: บาท [฿]</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-medium text-slate-700 mb-1">ค่าวิ่งงาน [฿] <span class="text-rose-500">*</span></label>
-                                <input type="number" id="runCost" step="0.01" min="0" placeholder="0.00"
-                                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-slate-700 mb-1">เก็บเงินสด [฿] <span class="text-rose-500">*</span></label>
-                                <input type="number" id="cashCollected" step="0.01" min="0" placeholder="0.00"
-                                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-slate-700 mb-1">ค่าทางด่วน [฿]</label>
-                                <input type="number" id="tollCost" step="0.01" min="0" placeholder="0.00"
-                                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-slate-700 mb-1">ค่าจอดรถ [฿]</label>
-                                <input type="number" id="parkingCost" step="0.01" min="0" placeholder="0.00"
-                                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
-                            </div>
-                        </div>
-
-                        <!-- Tips -->
-                        <div class="pt-1">
-                            <label class="block text-xs font-medium text-slate-700 mb-1.5">💰 Tips 💰 <span class="text-rose-500">*</span></label>
-                            <div class="grid grid-cols-2 gap-2.5">
-                                <label class="tips-card cursor-pointer">
-                                    <input type="radio" name="hasTips" value="no" class="sr-only" onchange="handleTipsChange()" checked>
-                                    <div class="border border-slate-200 bg-white rounded-xl py-2 px-3 text-center text-xs font-medium transition">
-                                        👎 ไม่มีทิป
-                                    </div>
-                                </label>
-                                <label class="tips-card cursor-pointer">
-                                    <input type="radio" name="hasTips" value="yes" class="sr-only" onchange="handleTipsChange()">
-                                    <div class="border border-slate-200 bg-white rounded-xl py-2 px-3 text-center text-xs font-medium transition">
-                                        👍 มีทิป (Section 14)
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Section 14: จำนวนเงินทิป -->
-                        <div id="tipsAmountWrapper" class="hidden pt-1">
-                            <label class="block text-xs font-medium text-emerald-800 mb-1">จำนวนเงิน Tips [฿] <span class="text-rose-500">*</span></label>
-                            <input type="number" id="tipsAmount" step="0.01" min="0" placeholder="ระบุจำนวนเงินทิป..."
-                                class="w-full rounded-xl border border-emerald-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
-                        </div>
-                    </div>
-
-                    <!-- Section 4, 5, 6, 7: เชื้อเพลิง -->
-                    <div id="sectionFuel" class="hidden bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 space-y-3.5">
-                        <div class="flex items-center justify-between border-b border-amber-200/60 pb-2">
-                            <span class="text-xs font-semibold text-amber-900 uppercase tracking-wider">ส่วนที่ 4-7: เชื้อเพลิง</span>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 mb-1.5">เลือกชนิดเชื้อเพลิง <span class="text-rose-500">*</span></label>
-                            <div class="grid grid-cols-3 gap-2">
-                                <label class="fuel-card cursor-pointer">
-                                    <input type="radio" name="fuelType" value="E20" class="sr-only" onchange="updateFuelLabel()" checked>
-                                    <div class="border border-slate-200 bg-white rounded-xl py-2 text-center text-xs font-semibold transition">E20</div>
-                                </label>
-                                <label class="fuel-card cursor-pointer">
-                                    <input type="radio" name="fuelType" value="LPG" class="sr-only" onchange="updateFuelLabel()">
-                                    <div class="border border-slate-200 bg-white rounded-xl py-2 text-center text-xs font-semibold transition">LPG</div>
-                                </label>
-                                <label class="fuel-card cursor-pointer">
-                                    <input type="radio" name="fuelType" value="NGV" class="sr-only" onchange="updateFuelLabel()">
-                                    <div class="border border-slate-200 bg-white rounded-xl py-2 text-center text-xs font-semibold transition">NGV</div>
-                                </label>
-                            </div>
-                        </div>
-                        <div>
-                            <label id="fuelAmountLabel" class="block text-xs font-medium text-slate-700 mb-1">E20 [฿] <span class="text-rose-500">*</span></label>
-                            <input type="number" id="fuelAmount" step="0.01" min="0" placeholder="ระบุจำนวนเงินค่าเชื้อเพลิง..."
-                                class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-amber-500 outline-none">
-                        </div>
-                    </div>
-
-                    <!-- Section 3, 8, 9, 10, 11, 12, 13: หมวดหมู่จำนวนเงินเดี่ยว -->
-                    <div id="sectionSingleAmount" class="hidden bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
-                        <label id="singleAmountLabel" class="block text-xs font-semibold text-slate-700">จำนวนเงิน [฿] <span class="text-rose-500">*</span></label>
-                        <input type="number" id="singleAmountInput" step="0.01" min="0" placeholder="0.00"
-                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
-                    </div>
-
-                    <!-- รายละเอียด (Section 1) -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
-                            รายละเอียด <span class="text-rose-500">*</span>
-                        </label>
-                        <textarea id="descriptionInput" rows="2" required placeholder="ระบุรายละเอียด เช่น ทะเบียนรถ ลูกค้า หรือรายการสิ่งของ..."
-                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition"></textarea>
-                    </div>
-
-                    <!-- สถานที่ / พิกัด GPS (Location) -->
-                    <div class="bg-slate-50/80 border border-slate-200 rounded-2xl p-3.5 space-y-2.5">
-                        <div class="flex items-center justify-between">
-                            <label class="text-xs sm:text-sm font-medium text-slate-700 flex items-center gap-1.5">
-                                <i class="ph ph-map-pin text-rose-500 text-base"></i>
-                                <span>สถานที่ / พิกัด (Location)</span>
-                            </label>
-                            <button type="button" id="btnGetLocation" onclick="getCurrentLocation()"
-                                class="text-xs bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-2.5 py-1.5 rounded-xl font-medium flex items-center gap-1 transition shadow-sm">
-                                <i id="locIcon" class="ph ph-crosshair text-sm"></i>
-                                <span id="locBtnText">ดึงพิกัดปัจจุบัน</span>
-                            </button>
-                        </div>
-
-                        <input type="text" id="locationNameInput" placeholder="กดปุ่มดึงพิกัด GPS หรือพิมพ์ระบุสถานที่..."
-                            class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white transition">
-
-                        <div id="coordsBadge" class="hidden flex items-center justify-between bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs text-emerald-800">
-                            <div class="flex items-center gap-1.5 truncate">
-                                <i class="ph ph-navigation-arrow text-emerald-600"></i>
-                                <span id="coordsText" class="font-medium truncate">พิกัด: -</span>
-                            </div>
-                            <div class="flex items-center gap-2 shrink-0 ml-2">
-                                <a id="coordsMapLink" href="#" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline font-medium flex items-center gap-0.5">
-                                    <span>ดูแผนที่</span>
-                                    <i class="ph ph-arrow-square-out"></i>
-                                </a>
-                                <span class="text-emerald-300">|</span>
-                                <button type="button" onclick="clearLocationData()" class="text-rose-500 hover:text-rose-700 font-medium">ลบ</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- แนบไฟล์ / กล้องถ่ายรูปพร้อมบีบอัดภาพ -->
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between">
-                            <label class="block text-sm font-medium text-slate-700">แนบสลิป / ใบเสร็จ (บีบอัดภาพอัตโนมัติ)</label>
-                            <span id="compressionBadge" class="hidden text-[11px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">ลดขนาดแล้ว</span>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-2.5">
-                            <button type="button" onclick="openCameraModal()"
-                                class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-700 text-xs sm:text-sm font-medium transition">
-                                <i class="ph ph-camera text-lg"></i>
-                                <span>ถ่ายรูปใบเสร็จ</span>
-                            </button>
-
-                            <label class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-medium cursor-pointer transition">
-                                <i class="ph ph-upload-simple text-lg"></i>
-                                <span>เลือกไฟล์ภาพ</span>
-                                <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
-                            </label>
-                        </div>
-
-                        <!-- Fallback input สำหรับกล้องมือถือ -->
-                        <input type="file" id="nativeCameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(event)">
-
-                        <!-- ตัวอย่างรูปภาพที่แนบ -->
-                        <div id="attachmentPreview" class="hidden bg-slate-50 border border-slate-200 rounded-2xl p-3 flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <img id="previewThumb" src="" alt="Preview" class="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0">
-                                <div class="min-w-0">
-                                    <p id="previewFileName" class="text-xs font-semibold text-slate-700 truncate">slip.jpg</p>
-                                    <p id="previewFileSize" class="text-[11px] text-emerald-600 font-medium">ขนาดไฟล์: -</p>
-                                </div>
-                            </div>
-                            <button type="button" onclick="clearFileInput()" class="text-xs text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition shrink-0">
-                                <i class="ph ph-trash text-base"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <button type="submit" id="submitBtn"
-                        class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-semibold py-3 rounded-2xl shadow-md shadow-indigo-500/20 flex items-center justify-center space-x-2 transition">
-                        <i id="submitBtnIcon" class="ph ph-floppy-disk text-lg"></i>
-                        <span id="submitBtnText">บันทึกรายการค่าใช้จ่าย</span>
-                    </button>
-                </form>
-            </div>
-
-            <div class="lg:col-span-7 bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
-                <div class="p-4 sm:px-6 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
-                    <h2 class="font-semibold text-slate-800 flex items-center gap-2">
-                        <i class="ph ph-clock-counter-clockwise text-indigo-600 text-lg"></i>
-                        <span>ประวัติการบันทึกรายการ</span>
-                    </h2>
-                    <div class="flex items-center gap-2">
-                        <div class="relative flex-1 sm:w-44">
-                            <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                            <input type="text" id="searchInput" oninput="renderRecords()" placeholder="ค้นหารายการ/สถานที่..."
-                                class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
-                        </div>
-                        <select id="filterCategory" onchange="renderRecords()"
-                            class="text-xs rounded-xl border border-slate-300 px-2.5 py-1.5 bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
-                            <option value="ALL">ทุกหมวดหมู่</option>
-                            <option value="วิ่งงานรถ">วิ่งงานรถ</option>
-                            <option value="เบิกเงิน">เบิกเงิน</option>
-                            <option value="เชื้อเพลิง">เชื้อเพลิง</option>
-                            <option value="ล้างรถ">ล้างรถ</option>
-                            <option value="ซ่อมรถ">ซ่อมรถ</option>
-                            <option value="คืนเงิน">คืนเงิน</option>
-                            <option value="ฝากซื้อของ">ฝากซื้อของ</option>
-                            <option value="อื่นๆ">อื่นๆ</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div id="recordsContainer" class="divide-y divide-slate-100 max-h-[650px] overflow-y-auto"></div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Modal กล้องถ่ายรูป -->
-    <div id="cameraModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl">
-            <div class="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between">
-                <div class="flex items-center gap-2 text-sm font-medium">
-                    <i class="ph ph-camera text-indigo-400 text-lg"></i>
-                    <span>ถ่ายรูปสลิป / ใบเสร็จ</span>
-                </div>
-                <button type="button" onclick="closeCameraModal()" class="text-slate-400 hover:text-white">
-                    <i class="ph ph-x text-lg"></i>
-                </button>
-            </div>
-            <div class="relative bg-black aspect-[3/4] flex items-center justify-center overflow-hidden">
-                <video id="cameraVideo" autoplay playsinline class="w-full h-full object-cover"></video>
-                <div class="absolute inset-6 border-2 border-dashed border-white/60 rounded-2xl pointer-events-none flex items-end justify-center pb-3">
-                    <span class="text-[11px] bg-black/50 text-white px-2.5 py-0.5 rounded-full">วางใบเสร็จให้อยู่ในกรอบ</span>
-                </div>
-            </div>
-            <div class="p-4 bg-slate-50 flex items-center justify-between gap-3">
-                <button type="button" onclick="switchCamera()" class="px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 text-xs font-medium flex items-center gap-1.5 hover:bg-slate-100">
-                    <i class="ph ph-arrows-clockwise text-base"></i>
-                    <span>สลับกล้อง</span>
-                </button>
-                <button type="button" onclick="capturePhoto()" class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold flex items-center justify-center gap-2 shadow">
-                    <i class="ph ph-aperture text-lg"></i>
-                    <span>กดถ่ายภาพ</span>
-                </button>
-            </div>
-        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="fetchFromSheet()" class="bg-white/15 hover:bg-white/25 text-white text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5">
+          <i class="fa-solid fa-rotate" id="refreshIcon"></i> ซิงค์ข้อมูล
+        </button>
+        <button onclick="exportCSV()" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs px-3 py-2 rounded-lg font-semibold shadow-sm transition flex items-center gap-1.5">
+          <i class="fa-solid fa-file-excel"></i> ส่งออก CSV
+        </button>
+      </div>
     </div>
+  </header>
 
-    <!-- Modal ดูรูปแนบ -->
-    <div id="imageModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4" onclick="closeImageModal()">
-        <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
-            <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
-                <h3 id="modalImageTitle" class="text-sm font-semibold text-slate-800 truncate">รูปสลิป / ใบเสร็จ</h3>
-                <button onclick="closeImageModal()" class="text-slate-400 hover:text-slate-700">
-                    <i class="ph ph-x text-lg"></i>
+  <main class="max-w-5xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- ฟอร์มบันทึกข้อมูล (ซ้าย) -->
+    <section class="lg:col-span-7">
+      <form id="expenseForm" onsubmit="handleSubmit(event)" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-indigo-50/70 px-6 py-4 border-b border-indigo-100 flex items-center justify-between">
+          <h2 class="font-bold text-indigo-950 flex items-center gap-2">
+            <i class="fa-solid fa-pen-to-square text-indigo-600"></i> บันทึกรายการใหม่
+          </h2>
+          <span class="text-xs text-indigo-600 font-medium">* จำเป็นต้องกรอก</span>
+        </div>
+
+        <div class="p-6 space-y-5">
+          <!-- วันที่ -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">วันที่ <span class="text-red-500">*</span></label>
+            <input type="date" id="date" required class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+          </div>
+
+          <!-- ประเภท (Section 1) -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">ประเภท <span class="text-red-500">*</span></label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="categoryGrid">
+              <!-- สร้างปุ่มด้วย JS -->
+            </div>
+            <input type="hidden" id="category" required>
+          </div>
+
+          <!-- พื้นที่ Dynamic ตามประเภทที่เลือก (Section 2 - 14) -->
+          <div id="dynamicSection" class="hidden fade-in bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4"></div>
+
+          <!-- รายละเอียด -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">รายละเอียด <span class="text-red-500">*</span></label>
+            <textarea id="details" rows="2" required placeholder="ระบุรายละเอียดงาน / จุดหมาย / รายการของ..." class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
+          </div>
+
+          <!-- พิกัดสถานที่ (Location) -->
+          <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-200 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <label class="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-location-dot text-rose-500"></i> สถานที่ / พิกัด GPS
+              </label>
+              <button type="button" onclick="getCurrentLocation()" id="gpsBtn" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold px-3 py-1.5 rounded-lg border border-rose-200 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-crosshairs"></i> ดึงพิกัดปัจจุบัน
+              </button>
+            </div>
+            <input type="text" id="locationName" placeholder="พิมพ์ชื่อสถานที่ หรือกดปุ่มดึงพิกัดปัจจุบัน..." class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+            <div id="gpsCoordsText" class="text-xs text-gray-500 hidden"></div>
+            <input type="hidden" id="lat">
+            <input type="hidden" id="lng">
+          </div>
+
+          <!-- แนบไฟล์ / ถ่ายรูปพร้อมบีบอัด -->
+          <div class="space-y-2.5">
+            <label class="block text-sm font-semibold text-gray-700">แนบสลิป / ใบเสร็จ (บีบอัดไฟล์อัตโนมัติ)</label>
+            <div class="grid grid-cols-2 gap-2.5">
+              <button type="button" onclick="openCamera()" class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2 border-dashed border-indigo-300 bg-indigo-50/50 hover:bg-indigo-50 text-indigo-700 font-semibold text-xs transition">
+                <i class="fa-solid fa-camera text-base"></i> ถ่ายรูปใบเสร็จ
+              </button>
+              <label class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2 border-dashed border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold text-xs cursor-pointer transition">
+                <i class="fa-solid fa-image text-base text-gray-500"></i> เลือกรูปจากเครื่อง
+                <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+              </label>
+            </div>
+
+            <!-- กล้องถ่ายรูป -->
+            <div id="cameraBox" class="hidden bg-black rounded-xl overflow-hidden relative">
+              <video id="cameraVideo" autoplay playsinline class="w-full max-h-72 object-cover"></video>
+              <div class="p-3 bg-gray-900 flex items-center justify-between">
+                <button type="button" onclick="switchCamera()" class="text-white text-xs bg-white/20 px-3 py-1.5 rounded-lg">
+                  <i class="fa-solid fa-camera-rotate"></i> สลับกล้อง
                 </button>
-            </div>
-            <div class="p-4 bg-slate-100 flex items-center justify-center max-h-[75vh] overflow-auto">
-                <img id="modalImageElement" src="" alt="Attachment" class="rounded-xl max-h-[65vh] object-contain">
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal ตั้งค่าเชื่อมต่อ Google Sheet -->
-    <div id="sheetConfigModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4" onclick="closeSheetConfigModal()">
-        <div class="bg-white rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl flex flex-col" onclick="event.stopPropagation()">
-            <div class="px-6 py-4 bg-gradient-to-r from-emerald-700 to-teal-600 text-white flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                    <i class="ph ph-microsoft-excel-logo text-2xl"></i>
-                    <div>
-                        <h3 class="text-base font-bold">ตั้งค่าการเชื่อมต่อ Google Sheet</h3>
-                        <p class="text-[11px] text-emerald-100">Sheet ID: 1ShKjTR3FVVYUyu5EKimiOGO77vr38KO_vaYHQ_3Ro2k</p>
-                    </div>
-                </div>
-                <button onclick="closeSheetConfigModal()" class="text-emerald-100 hover:text-white">
-                    <i class="ph ph-x text-xl"></i>
+                <button type="button" onclick="capturePhoto()" class="bg-white text-gray-900 font-bold text-xs px-4 py-2 rounded-full shadow">
+                  <i class="fa-solid fa-circle-dot text-rose-600"></i> กดถ่ายภาพ
                 </button>
+                <button type="button" onclick="closeCamera()" class="text-gray-300 text-xs px-2 py-1">ยกเลิก</button>
+              </div>
             </div>
 
-            <div class="p-6 space-y-4 text-slate-700 text-xs sm:text-sm">
-                <div class="bg-emerald-50/90 border border-emerald-200 rounded-2xl p-4 space-y-2.5">
-                    <label class="block font-semibold text-emerald-950">
-                        ลิงก์ Web App URL ของคุณ (เชื่อมต่อไว้แล้ว):
-                    </label>
-                    <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="url" id="gasUrlInput"
-                            value="https://script.google.com/macros/s/AKfycbwGSpCremeaCz1J7RGrfbhkjtz0UXf8gekJG82qvkC9xet70tST8NP1WHg7N1EmMBpU/exec"
-                            class="flex-1 rounded-xl border border-emerald-300 px-3.5 py-2 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none font-mono">
-                        <button type="button" onclick="saveGasUrl()"
-                            class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl transition shrink-0 flex items-center justify-center gap-1.5">
-                            <i class="ph ph-check-bold"></i>
-                            <span>บันทึก</span>
-                        </button>
-                    </div>
+            <!-- ตัวอย่างรูปที่บีบอัดแล้ว -->
+            <div id="previewBox" class="hidden flex items-center justify-between bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">
+              <div class="flex items-center gap-3">
+                <img id="previewImg" class="w-12 h-12 rounded-lg object-cover border border-emerald-300 cursor-pointer" onclick="viewFullImage(this.src)">
+                <div>
+                  <p class="text-xs font-semibold text-emerald-900" id="previewName">สลิปใบเสร็จ.jpg</p>
+                  <p class="text-[11px] text-emerald-700" id="previewSize">ย่อขนาดเรียบร้อย</p>
                 </div>
+              </div>
+              <button type="button" onclick="clearImage()" class="text-rose-500 hover:text-rose-700 p-1.5 text-sm">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
             </div>
+          </div>
+
+          <button type="submit" id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-cloud-arrow-up"></i> บันทึกข้อมูลลง Google Sheet
+          </button>
         </div>
-    </div>
+      </form>
+    </section>
 
-    <!-- Toast แจ้งเตือน -->
-    <div id="toastBox" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
-        <div id="toastInner" class="bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center space-x-2.5 text-xs sm:text-sm">
-            <i id="toastIcon" class="ph ph-check-circle text-emerald-400 text-lg"></i>
-            <span id="toastMessage">บันทึกสำเร็จ</span>
+    <!-- สรุปยอดและประวัติ (ขวา) -->
+    <section class="lg:col-span-5 space-y-5">
+      <!-- การ์ดสรุปยอด -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+          <p class="text-xs text-gray-500">รวมค่าใช้จ่ายสุทธิ</p>
+          <p class="text-xl font-bold text-indigo-700 mt-1" id="sumExpense">฿0.00</p>
         </div>
-    </div>
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+          <p class="text-xs text-gray-500">เก็บเงินสด / คืนเงิน</p>
+          <p class="text-xl font-bold text-emerald-600 mt-1" id="sumCashIn">฿0.00</p>
+        </div>
+      </div>
 
-    <script>
-        const TARGET_SHEET_ID = '1ShKjTR3FVVYUyu5EKimiOGO77vr38KO_vaYHQ_3Ro2k';
-        const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbwGSpCremeaCz1J7RGrfbhkjtz0UXf8gekJG82qvkC9xet70tST8NP1WHg7N1EmMBpU/exec';
+      <!-- รายการล่าสุด -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+          <h3 class="font-bold text-sm text-gray-800">ประวัติการบันทึกล่าสุด</h3>
+          <span class="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full font-semibold" id="recordCount">0 รายการ</span>
+        </div>
+        <div id="historyList" class="divide-y divide-gray-100 max-h-[520px] overflow-y-auto">
+          <p class="text-center text-gray-400 text-sm py-10">กำลังโหลดข้อมูล...</p>
+        </div>
+      </div>
+    </section>
+  </main>
 
-        let googleScriptUrl = DEFAULT_GAS_URL;
-        let records = [];
-        let currentAttachmentData = null;
-        let currentAttachmentName = '';
-        let currentLat = null;
-        let currentLng = null;
-        let cameraStream = null;
-        let usingFrontCamera = false;
+  <!-- Modal ดูรูปขยาย -->
+  <div id="imgModal" onclick="this.classList.add('hidden')" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+    <img id="modalImgSrc" class="max-w-full max-h-[90vh] rounded-xl shadow-2xl">
+  </div>
 
-        window.onload = function() {
-            document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
-            document.getElementById('quickGasUrlInput').value = googleScriptUrl;
-            document.getElementById('gasUrlInput').value = googleScriptUrl;
+  <script>
+    // ลิงก์ Web App URL ของคุณที่ฝังไว้เรียบร้อยแล้ว
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwGSpCremeaCz1J7RGrfbhkjtz0UXf8gekJG82qvkC9xet70tST8NP1WHg7N1EmMBpU/exec";
 
-            handleCategoryChange();
-            updateSheetStatusUI();
-            renderRecords();
-            updateStats();
-            autoDetectLocationSilently();
+    const CATEGORIES = [
+      { id: 'วิ่งงานรถ', icon: 'fa-truck-fast', color: 'indigo' },
+      { id: 'เบิกเงิน', icon: 'fa-hand-holding-dollar', color: 'amber' },
+      { id: 'เชื้อเพลิง', icon: 'fa-gas-pump', color: 'rose' },
+      { id: 'ล้างรถ', icon: 'fa-soap', color: 'cyan' },
+      { id: 'ซ่อมรถ', icon: 'fa-screwdriver-wrench', color: 'orange' },
+      { id: 'คืนเงิน', icon: 'fa-rotate-left', color: 'emerald' },
+      { id: 'ฝากซื้อของ', icon: 'fa-bag-shopping', color: 'purple' },
+      { id: 'อื่นๆ', icon: 'fa-ellipsis', color: 'slate' }
+    ];
 
-            // ดึงข้อมูลจาก Google Sheet ทันทีเมื่อเปิดหน้าเว็บ
-            fetchRecordsFromSheet(true);
+    let records = JSON.parse(localStorage.getItem('office_expenses_v1') || '[]');
+    let compressedBase64 = '';
+    let compressedFileName = '';
+    let cameraStream = null;
+    let facingMode = 'environment';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('date').valueAsDate = new Date();
+      renderCategories();
+      SelectCategory('วิ่งงานรถ');
+      renderHistory();
+      fetchFromSheet();
+    });
+
+    function renderCategories() {
+      const grid = document.getElementById('categoryGrid');
+      grid.innerHTML = CATEGORIES.map(c => `
+        <button type="button" onclick="SelectCategory('${c.id}')" id="cat_${c.id}"
+          class="cat-btn flex items-center gap-2 p-2.5 rounded-xl border text-xs font-semibold transition text-left">
+          <i class="fa-solid ${c.icon} text-sm"></i>
+          <span>${c.id}</span>
+        </button>
+      `).join('');
+    }
+
+    function SelectCategory(catId) {
+      document.getElementById('category').value = catId;
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.className = 'cat-btn flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition';
+      });
+      const activeBtn = document.getElementById('cat_' + catId);
+      if (activeBtn) {
+        activeBtn.className = 'cat-btn flex items-center gap-2 p-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 text-xs font-bold transition shadow-sm';
+      }
+      renderDynamicFields(catId);
+    }
+
+    function renderDynamicFields(catId) {
+      const box = document.getElementById('dynamicSection');
+      box.classList.remove('hidden');
+
+      if (catId === 'วิ่งงานรถ') {
+        box.innerHTML = `
+          <div class="text-xs font-bold text-indigo-900 border-b border-indigo-200 pb-1.5">ส่วนที่ 2: รายละเอียดวิ่งงานรถ</div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">ค่าวิ่งงาน [฿] <span class="text-red-500">*</span></label>
+              <input type="number" step="0.01" id="runFee" required placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">เก็บเงินสด [฿] <span class="text-red-500">*</span></label>
+              <input type="number" step="0.01" id="cashCollected" required placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">ค่าทางด่วน [฿]</label>
+              <input type="number" step="0.01" id="tollFee" placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">ค่าจอดรถ [฿]</label>
+              <input type="number" step="0.01" id="parkingFee" placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            </div>
+          </div>
+          <div class="pt-2 border-t border-slate-200">
+            <label class="block text-xs font-semibold text-gray-700 mb-1.5">💰 Tips 💰 <span class="text-red-500">*</span></label>
+            <div class="flex gap-4">
+              <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="radio" name="hasTips" value="yes" onchange="toggleTipsInput(true)" required> 👍 มีทิป
+              </label>
+              <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="radio" name="hasTips" value="no" onchange="toggleTipsInput(false)" checked> 👎 ไม่มีทิป
+              </label>
+            </div>
+            <div id="tipsBox" class="hidden mt-3">
+              <label class="block text-xs font-semibold text-gray-700 mb-1">จำนวนเงิน Tips [฿] (Section 14) <span class="text-red-500">*</span></label>
+              <input type="number" step="0.01" id="tipsAmount" placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            </div>
+          </div>
+        `;
+      } else if (catId === 'เชื้อเพลิง') {
+        box.innerHTML = `
+          <div class="text-xs font-bold text-indigo-900 border-b border-indigo-200 pb-1.5">ส่วนที่ 4: เลือกชนิดเชื้อเพลิง</div>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="border rounded-lg p-2.5 text-center text-xs font-bold cursor-pointer bg-white hover:bg-indigo-50">
+              <input type="radio" name="fuelType" value="E20" checked onchange="updateFuelLabel('E20')" class="mr-1"> E20
+            </label>
+            <label class="border rounded-lg p-2.5 text-center text-xs font-bold cursor-pointer bg-white hover:bg-indigo-50">
+              <input type="radio" name="fuelType" value="LPG" onchange="updateFuelLabel('LPG')" class="mr-1"> LPG
+            </label>
+            <label class="border rounded-lg p-2.5 text-center text-xs font-bold cursor-pointer bg-white hover:bg-indigo-50">
+              <input type="radio" name="fuelType" value="NGV" onchange="updateFuelLabel('NGV')" class="mr-1"> NGV
+            </label>
+          </div>
+          <div>
+            <label id="fuelAmountLabel" class="block text-xs font-semibold text-gray-700 mb-1">E20 [฿] <span class="text-red-500">*</span></label>
+            <input type="number" step="0.01" id="singleAmount" required placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          </div>
+        `;
+      } else {
+        const labelMap = {
+          'เบิกเงิน': 'เบิกเงิน [฿]',
+          'ล้างรถ': 'ล้างรถ [฿]',
+          'ซ่อมรถ': 'ซ่อมรถ [฿]',
+          'คืนเงิน': 'คืนเงิน [฿]',
+          'ฝากซื้อของ': 'ซื้อของ [฿]',
+          'อื่นๆ': 'อื่นๆ [฿]'
         };
+        box.innerHTML = `
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">${labelMap[catId] || 'จำนวนเงิน [฿]'} <span class="text-red-500">*</span></label>
+            <input type="number" step="0.01" id="singleAmount" required placeholder="0.00" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          </div>
+        `;
+      }
+    }
 
-        function parseAndRenderSheetRows(rows) {
-            const sheetRecords = rows.slice(1).reverse().map((row, idx) => {
-                const cat = row[2] || 'อื่นๆ';
-                const coordsParts = String(row[5] || '').split(',');
-                const slipLink = String(row[16] || '');
-                return {
-                    id: 'sheet-' + idx + '-' + Date.now(),
-                    date: row[1] ? String(row[1]).split('T')[0] : new Date().toISOString().split('T')[0],
-                    category: cat,
-                    description: String(row[3] || ''),
-                    locationName: String(row[4] || ''),
-                    lat: coordsParts.length === 2 ? parseFloat(coordsParts[0]) : null,
-                    lng: coordsParts.length === 2 ? parseFloat(coordsParts[1]) : null,
-                    attachmentName: slipLink,
-                    attachmentData: slipLink.startsWith('http') || slipLink.startsWith('data:image') ? slipLink : null,
-                    details: {
-                        runCost: parseFloat(row[7]) || 0,
-                        cashCollected: parseFloat(row[8]) || 0,
-                        tollCost: parseFloat(row[9]) || 0,
-                        parkingCost: parseFloat(row[10]) || 0,
-                        hasTips: row[11] === 'มีทิป' ? 'yes' : 'no',
-                        tipsAmount: parseFloat(row[12]) || 0,
-                        fuelType: String(row[13] || 'E20'),
-                        fuelAmount: parseFloat(row[14]) || 0,
-                        amount: parseFloat(row[15]) || 0
-                    },
-                    timestamp: row[0] ? new Date(row[0]).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '-',
-                    synced: true
-                };
-            });
-            records = sheetRecords;
-            renderRecords();
-            updateStats();
+    function toggleTipsInput(show) {
+      const tipsBox = document.getElementById('tipsBox');
+      const tipsInput = document.getElementById('tipsAmount');
+      if (show) {
+        tipsBox.classList.remove('hidden');
+        tipsInput.required = true;
+      } else {
+        tipsBox.classList.add('hidden');
+        tipsInput.required = false;
+        tipsInput.value = '';
+      }
+    }
+
+    function updateFuelLabel(type) {
+      document.getElementById('fuelAmountLabel').innerHTML = `${type} [฿] <span class="text-red-500">*</span>`;
+    }
+
+    // ดึงพิกัด GPS ปัจจุบัน
+    function getCurrentLocation() {
+      const btn = document.getElementById('gpsBtn');
+      if (!navigator.geolocation) {
+        alert('เบราว์เซอร์ของคุณไม่รองรับการดึงพิกัด GPS');
+        return;
+      }
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังหาพิกัด...';
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = pos.coords.latitude.toFixed(6);
+        const lng = pos.coords.longitude.toFixed(6);
+        document.getElementById('lat').value = lat;
+        document.getElementById('lng').value = lng;
+        const coordsEl = document.getElementById('gpsCoordsText');
+        coordsEl.classList.remove('hidden');
+        coordsEl.innerHTML = `พิกัด: <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="text-indigo-600 underline">${lat}, ${lng}</a>`;
+
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=th`);
+          const data = await res.json();
+          if (data && data.display_name && !document.getElementById('locationName').value) {
+            document.getElementById('locationName').value = data.display_name.split(',').slice(0, 3).join(', ');
+          }
+        } catch (e) {}
+        btn.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i> ดึงพิกัดสำเร็จ';
+      }, () => {
+        alert('ไม่สามารถดึงพิกัดได้ กรุณาอนุญาตการเข้าถึงตำแหน่งที่ตั้ง (Location)');
+        btn.innerHTML = '<i class="fa-solid fa-crosshairs"></i> ดึงพิกัดปัจจุบัน';
+      }, { enableHighAccuracy: true, timeout: 10000 });
+    }
+
+    // ระบบกล้องและบีบอัดรูปภาพ
+    async function openCamera() {
+      const box = document.getElementById('cameraBox');
+      const video = document.getElementById('cameraVideo');
+      try {
+        if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
+        video.srcObject = cameraStream;
+        box.classList.remove('hidden');
+      } catch (err) {
+        document.getElementById('fileInput').setAttribute('capture', 'environment');
+        document.getElementById('fileInput').click();
+      }
+    }
+
+    function switchCamera() {
+      facingMode = facingMode === 'environment' ? 'user' : 'environment';
+      openCamera();
+    }
+
+    function closeCamera() {
+      if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+      document.getElementById('cameraBox').classList.add('hidden');
+    }
+
+    function capturePhoto() {
+      const video = document.getElementById('cameraVideo');
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      closeCamera();
+      compressImageFromSource(canvas.toDataURL('image/jpeg'), `camera_${Date.now()}.jpg`);
+    }
+
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => compressImageFromSource(ev.target.result, file.name);
+      reader.readAsDataURL(file);
+    }
+
+    function compressImageFromSource(dataUrl, fileName) {
+      const img = new Image();
+      img.onload = () => {
+        const MAX_SIDE = 1200;
+        let w = img.width, h = img.height;
+        if (w > h && w > MAX_SIDE) { h = Math.round(h * (MAX_SIDE / w)); w = MAX_SIDE; }
+        else if (h > w && h > MAX_SIDE) { w = Math.round(w * (MAX_SIDE / h)); h = MAX_SIDE; }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+        compressedBase64 = canvas.toDataURL('image/jpeg', 0.72);
+        compressedFileName = fileName.replace(/\.[^/.]+$/, "") + ".jpg";
+
+        const kb = Math.round((compressedBase64.length * 3 / 4) / 1024);
+        document.getElementById('previewImg').src = compressedBase64;
+        document.getElementById('previewName').textContent = compressedFileName;
+        document.getElementById('previewSize').textContent = `ขนาดหลังบีบอัด: ~${kb} KB`;
+        document.getElementById('previewBox').classList.remove('hidden');
+      };
+      img.src = dataUrl;
+    }
+
+    function clearImage() {
+      compressedBase64 = '';
+      compressedFileName = '';
+      document.getElementById('fileInput').value = '';
+      document.getElementById('previewBox').classList.add('hidden');
+    }
+
+    function viewFullImage(src) {
+      document.getElementById('modalImgSrc').src = src;
+      document.getElementById('imgModal').classList.remove('hidden');
+    }
+
+    // บันทึกข้อมูล
+    async function handleSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึกข้อมูล...';
+
+      const cat = document.getElementById('category').value;
+      const lat = document.getElementById('lat').value;
+      const lng = document.getElementById('lng').value;
+
+      const item = {
+        id: 'EXP-' + Date.now(),
+        timestamp: new Date().toLocaleString('th-TH'),
+        date: document.getElementById('date').value,
+        category: cat,
+        details: document.getElementById('details').value,
+        locationName: document.getElementById('locationName').value || '',
+        lat, lng,
+        mapUrl: (lat && lng) ? `https://www.google.com/maps?q=${lat},${lng}` : '',
+        runFee: 0, cashCollected: 0, tollFee: 0, parkingFee: 0, tips: 0,
+        fuelType: '', fuelAmount: 0, amount: 0,
+        netExpense: 0, cashIn: 0,
+        imageBase64: compressedBase64,
+        imageName: compressedFileName
+      };
+
+      if (cat === 'วิ่งงานรถ') {
+        item.runFee = parseFloat(document.getElementById('runFee').value || 0);
+        item.cashCollected = parseFloat(document.getElementById('cashCollected').value || 0);
+        item.tollFee = parseFloat(document.getElementById('tollFee').value || 0);
+        item.parkingFee = parseFloat(document.getElementById('parkingFee').value || 0);
+        item.tips = parseFloat(document.getElementById('tipsAmount')?.value || 0);
+        item.netExpense = item.runFee + item.tollFee + item.parkingFee + item.tips;
+        item.cashIn = item.cashCollected;
+      } else if (cat === 'เชื้อเพลิง') {
+        item.fuelType = document.querySelector('input[name="fuelType"]:checked').value;
+        item.fuelAmount = parseFloat(document.getElementById('singleAmount').value || 0);
+        item.netExpense = item.fuelAmount;
+      } else if (cat === 'คืนเงิน') {
+        item.amount = parseFloat(document.getElementById('singleAmount').value || 0);
+        item.cashIn = item.amount;
+      } else {
+        item.amount = parseFloat(document.getElementById('singleAmount').value || 0);
+        item.netExpense = item.amount;
+      }
+
+      records.unshift(item);
+      localStorage.setItem('office_expenses_v1', JSON.stringify(records));
+      renderHistory();
+
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'saveExpense', data: item })
+        });
+      } catch (err) {
+        console.warn('Sync warning:', err);
+      }
+
+      document.getElementById('details').value = '';
+      clearImage();
+      SelectCategory(cat);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> บันทึกเรียบร้อย!';
+      setTimeout(() => {
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> บันทึกข้อมูลลง Google Sheet';
+      }, 1800);
+    }
+
+    async function fetchFromSheet() {
+      const icon = document.getElementById('refreshIcon');
+      icon.classList.add('fa-spin');
+      try {
+        const res = await fetch(`${GAS_WEB_APP_URL}?action=getExpenses`);
+        const json = await res.json();
+        if (json && Array.isArray(json.data) && json.data.length > 0) {
+          records = json.data;
+          localStorage.setItem('office_expenses_v1', JSON.stringify(records));
+          renderHistory();
         }
-
-        function saveQuickGasUrl() {
-            const val = document.getElementById('quickGasUrlInput').value.trim();
-            document.getElementById('gasUrlInput').value = val;
-            saveGasUrl();
-        }
-
-        function openSheetConfigModal() {
-            document.getElementById('gasUrlInput').value = googleScriptUrl;
-            const modal = document.getElementById('sheetConfigModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closeSheetConfigModal() {
-            const modal = document.getElementById('sheetConfigModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        function saveGasUrl() {
-            const val = document.getElementById('gasUrlInput').value.trim();
-            if (val && !val.startsWith('https://script.google.com/')) {
-                showToast('กรุณาใส่ลิงก์ Web App URL ที่ขึ้นต้นด้วย https://script.google.com/...', true);
-                return;
-            }
-            googleScriptUrl = val;
-            document.getElementById('quickGasUrlInput').value = googleScriptUrl;
-            updateSheetStatusUI();
-            closeSheetConfigModal();
-
-            if (googleScriptUrl) {
-                showToast('อัปเดตลิงก์เชื่อมต่อ Google Sheet เรียบร้อย!');
-                syncAllUnsynced();
-                fetchRecordsFromSheet();
-            } else {
-                showToast('ยกเลิกการเชื่อมต่อ Web App URL แล้ว');
-            }
-        }
-
-        async function fetchRecordsFromSheet(isInitial = false) {
-            if (typeof google !== 'undefined' && google.script && google.script.run) {
-                const icon = document.getElementById('refreshSheetIcon');
-                if (icon) icon.classList.add('animate-spin');
-                google.script.run.withSuccessHandler(function(data) {
-                    if (icon) icon.classList.remove('animate-spin');
-                    if (data && data.status === 'success' && Array.isArray(data.rows) && data.rows.length > 1) {
-                        parseAndRenderSheetRows(data.rows);
-                        if (!isInitial) showToast(`อัปเดตข้อมูลจาก Google Sheet แล้ว (${data.rows.length - 1} รายการ)`);
-                    }
-                }).withFailureHandler(function() {
-                    if (icon) icon.classList.remove('animate-spin');
-                }).getRecordsFromSheet();
-                return;
-            }
-
-            if (!googleScriptUrl) {
-                if (!isInitial) showToast('กรุณาวางลิงก์ Web App URL ก่อนดึงข้อมูล', true);
-                return;
-            }
-
-            const icon = document.getElementById('refreshSheetIcon');
-            if (icon) icon.classList.add('animate-spin');
-            try {
-                const res = await fetch(googleScriptUrl);
-                const data = await res.json();
-                if (data.status === 'success' && Array.isArray(data.rows)) {
-                    if (data.rows.length > 1) {
-                        parseAndRenderSheetRows(data.rows);
-                        if (!isInitial) showToast(`ดึงข้อมูลจาก Google Sheet สำเร็จ (${data.rows.length - 1} รายการ)`);
-                    } else if (!isInitial) {
-                        showToast('เชื่อมต่อสำเร็จ (ยังไม่มีรายการใน Google Sheet)');
-                    }
-                }
-            } catch (e) {
-                if (!isInitial) showToast('ส่งข้อมูลได้ปกติ (หากต้องการดึงข้อมูลให้ตรวจสอบสิทธิ์ Anyone ใน Apps Script)', false);
-            } finally {
-                if (icon) icon.classList.remove('animate-spin');
-            }
-        }
-
-        function updateSheetStatusUI() {
-            const dot = document.getElementById('sheetStatusDot');
-            const btnText = document.getElementById('sheetStatusBtnText');
-            const badge = document.getElementById('bannerStatusBadge');
-            const btnSyncAll = document.getElementById('btnSyncAll');
-
-            const unsyncedCount = records.filter(r => !r.synced).length;
-
-            if (googleScriptUrl) {
-                dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
-                btnText.textContent = 'เชื่อม Sheet แล้ว';
-                badge.className = 'text-[11px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-semibold';
-                badge.textContent = 'เชื่อมต่อพร้อมใช้งาน';
-                if (unsyncedCount > 0) {
-                    btnSyncAll.classList.remove('hidden');
-                } else {
-                    btnSyncAll.classList.add('hidden');
-                }
-            } else {
-                dot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
-                btnText.textContent = 'ตั้งค่าเชื่อม Sheet';
-                badge.className = 'text-[11px] bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full font-medium';
-                badge.textContent = 'รอใส่ Web App URL';
-                btnSyncAll.classList.add('hidden');
-            }
-        }
-
-        async function sendRecordToGoogleSheet(record) {
-            if (typeof google !== 'undefined' && google.script && google.script.run) {
-                return new Promise((resolve) => {
-                    google.script.run
-                        .withSuccessHandler((res) => {
-                            record.synced = true;
-                            if (res && res.fileUrl) record.attachmentData = res.fileUrl;
-                            resolve(true);
-                        })
-                        .withFailureHandler(() => {
-                            record.synced = false;
-                            resolve(false);
-                        })
-                        .saveRecordToSheet(record);
-                });
-            }
-
-            if (!googleScriptUrl) return false;
-            try {
-                await fetch(googleScriptUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({
-                        sheetId: TARGET_SHEET_ID,
-                        ...record
-                    })
-                });
-                record.synced = true;
-                return true;
-            } catch (err) {
-                record.synced = false;
-                return false;
-            }
-        }
-
-        async function syncSingleRecord(id) {
-            if (!googleScriptUrl) {
-                openSheetConfigModal();
-                return;
-            }
-            const rec = records.find(r => r.id === id);
-            if (!rec) return;
-
-            showToast('กำลังส่งข้อมูลเข้า Google Sheet...');
-            const ok = await sendRecordToGoogleSheet(rec);
-            renderRecords();
-            updateSheetStatusUI();
-            if (ok) {
-                showToast('ส่งข้อมูลเข้า Google Sheet สำเร็จ!');
-            } else {
-                showToast('ส่งข้อมูลไม่สำเร็จ กรุณาตรวจสอบลิงก์ URL', true);
-            }
-        }
-
-        async function syncAllUnsynced() {
-            if (!googleScriptUrl) {
-                openSheetConfigModal();
-                return;
-            }
-            const unsynced = records.filter(r => !r.synced);
-            if (unsynced.length === 0) {
-                showToast('ข้อมูลทุกรายการซิงค์เข้า Google Sheet ครบแล้ว');
-                return;
-            }
-            showToast(`กำลังซิงค์ข้อมูล ${unsynced.length} รายการเข้า Google Sheet...`);
-            for (const rec of unsynced) {
-                await sendRecordToGoogleSheet(rec);
-            }
-            renderRecords();
-            updateSheetStatusUI();
-            showToast(`ซิงค์ข้อมูลทั้ง ${unsynced.length} รายการเรียบร้อย!`);
-        }
-
-        function autoDetectLocationSilently() {
-            if (navigator.permissions && navigator.geolocation) {
-                navigator.permissions.query({ name: 'geolocation' }).then(result => {
-                    if (result.state === 'granted') {
-                        getCurrentLocation(true);
-                    }
-                }).catch(() => {});
-            }
-        }
-
-        function getCurrentLocation(isSilent = false) {
-            if (!navigator.geolocation) {
-                if (!isSilent) showToast('เบราว์เซอร์ของคุณไม่รองรับ GPS', true);
-                return;
-            }
-
-            const btnIcon = document.getElementById('locIcon');
-            const btnText = document.getElementById('locBtnText');
-            const locInput = document.getElementById('locationNameInput');
-
-            btnIcon.className = 'ph ph-spinner animate-spin text-sm';
-            btnText.textContent = 'กำลังค้นหาพิกัด...';
-
-            navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                    currentLat = parseFloat(position.coords.latitude.toFixed(6));
-                    currentLng = parseFloat(position.coords.longitude.toFixed(6));
-                    updateCoordsBadge(currentLat, currentLng);
-
-                    try {
-                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}&zoom=18&addressdetails=1&accept-language=th`);
-                        if (res.ok) {
-                            const data = await res.json();
-                            if (data && data.display_name && !locInput.value.trim()) {
-                                const parts = data.display_name.split(',').map(s => s.trim());
-                                locInput.value = parts.slice(0, 4).join(', ');
-                            }
-                        }
-                    } catch (e) {
-                        if (!locInput.value.trim()) {
-                            locInput.value = `พิกัด ${currentLat}, ${currentLng}`;
-                        }
-                    }
-
-                    btnIcon.className = 'ph ph-check-circle text-sm';
-                    btnText.textContent = 'อัปเดตพิกัดแล้ว';
-                    if (!isSilent) showToast('ดึงพิกัดสถานที่ปัจจุบันสำเร็จ!');
-                },
-                (error) => {
-                    btnIcon.className = 'ph ph-crosshair text-sm';
-                    btnText.textContent = 'ดึงพิกัดปัจจุบัน';
-                    if (!isSilent) {
-                        let msg = 'ไม่สามารถดึงพิกัดได้ กรุณาพิมพ์ชื่อสถานที่แทน';
-                        if (error.code === 1) msg = 'กรุณาอนุญาตการเข้าถึงตำแหน่งที่ตั้ง (Location)';
-                        showToast(msg, true);
-                    }
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-            );
-        }
-
-        function updateCoordsBadge(lat, lng) {
-            const badge = document.getElementById('coordsBadge');
-            const text = document.getElementById('coordsText');
-            const link = document.getElementById('coordsMapLink');
-            text.textContent = `${lat}, ${lng}`;
-            link.href = `https://www.google.com/maps?q=${lat},${lng}`;
-            badge.classList.remove('hidden');
-        }
-
-        function clearLocationData() {
-            currentLat = null;
-            currentLng = null;
-            document.getElementById('locationNameInput').value = '';
-            document.getElementById('coordsBadge').classList.add('hidden');
-            document.getElementById('locIcon').className = 'ph ph-crosshair text-sm';
-            document.getElementById('locBtnText').textContent = 'ดึงพิกัดปัจจุบัน';
-        }
-
-        function handleCategoryChange() {
-            const category = document.querySelector('input[name="category"]:checked')?.value;
-            const secRun = document.getElementById('sectionVehicleRun');
-            const secFuel = document.getElementById('sectionFuel');
-            const secSingle = document.getElementById('sectionSingleAmount');
-            const singleLabel = document.getElementById('singleAmountLabel');
-
-            secRun.classList.add('hidden');
-            secFuel.classList.add('hidden');
-            secSingle.classList.add('hidden');
-
-            if (category === 'วิ่งงานรถ') {
-                secRun.classList.remove('hidden');
-            } else if (category === 'เชื้อเพลิง') {
-                secFuel.classList.remove('hidden');
-                updateFuelLabel();
-            } else {
-                secSingle.classList.remove('hidden');
-                const sectionMap = {
-                    'เบิกเงิน': 'ส่วนที่ 3: เบิกเงิน [฿] *',
-                    'ล้างรถ': 'ส่วนที่ 8: ล้างรถ [฿] *',
-                    'ซ่อมรถ': 'ส่วนที่ 9: ซ่อมรถ [฿] *',
-                    'ฝากซื้อของ': 'ส่วนที่ 10: ซื้อของ [฿] *',
-                    'คืนเงิน': 'ส่วนที่ 12: คืนเงิน [฿] *',
-                    'อื่นๆ': 'ส่วนที่ 11/13: อื่นๆ [฿] *'
-                };
-                singleLabel.innerHTML = `${sectionMap[category] || 'จำนวนเงิน [฿] *'}`;
-            }
-        }
-
-        function handleTipsChange() {
-            const hasTips = document.querySelector('input[name="hasTips"]:checked')?.value;
-            const wrapper = document.getElementById('tipsAmountWrapper');
-            if (hasTips === 'yes') {
-                wrapper.classList.remove('hidden');
-            } else {
-                wrapper.classList.add('hidden');
-                document.getElementById('tipsAmount').value = '';
-            }
-        }
-
-        function updateFuelLabel() {
-            const fuelType = document.querySelector('input[name="fuelType"]:checked')?.value || 'E20';
-            const secNum = fuelType === 'NGV' ? '5' : (fuelType === 'E20' ? '6' : '7');
-            document.getElementById('fuelAmountLabel').innerHTML = `ส่วนที่ ${secNum}: ค่าเชื้อเพลิง ${fuelType} [฿] <span class="text-rose-500">*</span>`;
-        }
-
-        async function openCameraModal() {
-            const modal = document.getElementById('cameraModal');
-            const video = document.getElementById('cameraVideo');
-
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                document.getElementById('nativeCameraInput').click();
-                return;
-            }
-
-            try {
-                cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: usingFrontCamera ? 'user' : 'environment', width: { ideal: 1280 } },
-                    audio: false
-                });
-                video.srcObject = cameraStream;
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            } catch (err) {
-                document.getElementById('nativeCameraInput').click();
-            }
-        }
-
-        function closeCameraModal() {
-            const modal = document.getElementById('cameraModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
-        }
-
-        function switchCamera() {
-            usingFrontCamera = !usingFrontCamera;
-            closeCameraModal();
-            openCameraModal();
-        }
-
-        function capturePhoto() {
-            const video = document.getElementById('cameraVideo');
-            if (!video.videoWidth) return;
-
-            const canvas = document.createElement('canvas');
-            const maxDim = 1200;
-            let w = video.videoWidth;
-            let h = video.videoHeight;
-
-            if (w > h && w > maxDim) {
-                h = Math.round((h * maxDim) / w);
-                w = maxDim;
-            } else if (h > maxDim) {
-                w = Math.round((w * maxDim) / h);
-                h = maxDim;
-            }
-
-            canvas.width = w;
-            canvas.height = h;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, w, h);
-
-            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.72);
-            const approxKB = Math.round((compressedDataUrl.length * 3) / 4 / 1024);
-
-            setAttachmentPreview(compressedDataUrl, `camera_${Date.now()}.jpg`, `${approxKB} KB (บีบอัดแล้ว)`);
-            closeCameraModal();
-            showToast('ถ่ายภาพและบีบอัดขนาดไฟล์เรียบร้อย!');
-        }
-
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const originalKB = Math.round(file.size / 1024);
-            const reader = new FileReader();
-
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const maxDim = 1200;
-                    let w = img.width;
-                    let h = img.height;
-
-                    if (w > h && w > maxDim) {
-                        h = Math.round((h * maxDim) / w);
-                        w = maxDim;
-                    } else if (h > maxDim) {
-                        w = Math.round((w * maxDim) / h);
-                        h = maxDim;
-                    }
-
-                    canvas.width = w;
-                    canvas.height = h;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, w, h);
-
-                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.72);
-                    const compressedKB = Math.round((compressedDataUrl.length * 3) / 4 / 1024);
-
-                    setAttachmentPreview(
-                        compressedDataUrl,
-                        file.name.replace(/\.[^/.]+$/, "") + ".jpg",
-                        `${compressedKB} KB (จากเดิม ${originalKB} KB)`
-                    );
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function setAttachmentPreview(dataUrl, fileName, sizeText) {
-            currentAttachmentData = dataUrl;
-            currentAttachmentName = fileName;
-            document.getElementById('previewThumb').src = dataUrl;
-            document.getElementById('previewFileName').textContent = fileName;
-            document.getElementById('previewFileSize').textContent = `ขนาดไฟล์: ${sizeText}`;
-            document.getElementById('attachmentPreview').classList.remove('hidden');
-            document.getElementById('compressionBadge').classList.remove('hidden');
-        }
-
-        function clearFileInput() {
-            currentAttachmentData = null;
-            currentAttachmentName = '';
-            document.getElementById('fileInput').value = '';
-            document.getElementById('nativeCameraInput').value = '';
-            document.getElementById('attachmentPreview').classList.add('hidden');
-            document.getElementById('compressionBadge').classList.add('hidden');
-        }
-
-        async function handleFormSubmit(event) {
-            event.preventDefault();
-
-            const date = document.getElementById('dateInput').value;
-            const category = document.querySelector('input[name="category"]:checked')?.value;
-            const description = document.getElementById('descriptionInput').value.trim();
-            const locationName = document.getElementById('locationNameInput').value.trim();
-
-            if (!category) {
-                showToast('กรุณาเลือกประเภทค่าใช้จ่าย', true);
-                return;
-            }
-
-            let details = {};
-
-            if (category === 'วิ่งงานรถ') {
-                const hasTips = document.querySelector('input[name="hasTips"]:checked')?.value;
-                details = {
-                    runCost: parseFloat(document.getElementById('runCost').value) || 0,
-                    cashCollected: parseFloat(document.getElementById('cashCollected').value) || 0,
-                    tollCost: parseFloat(document.getElementById('tollCost').value) || 0,
-                    parkingCost: parseFloat(document.getElementById('parkingCost').value) || 0,
-                    hasTips: hasTips,
-                    tipsAmount: hasTips === 'yes' ? (parseFloat(document.getElementById('tipsAmount').value) || 0) : 0
-                };
-            } else if (category === 'เชื้อเพลิง') {
-                const fuelType = document.querySelector('input[name="fuelType"]:checked')?.value || 'E20';
-                details = {
-                    fuelType: fuelType,
-                    fuelAmount: parseFloat(document.getElementById('fuelAmount').value) || 0
-                };
-            } else {
-                details = {
-                    amount: parseFloat(document.getElementById('singleAmountInput').value) || 0
-                };
-            }
-
-            const newRecord = {
-                id: 'rec-' + Date.now(),
-                date,
-                category,
-                description,
-                locationName: locationName || (currentLat && currentLng ? `พิกัด ${currentLat}, ${currentLng}` : ''),
-                lat: currentLat,
-                lng: currentLng,
-                attachmentName: currentAttachmentName,
-                attachmentData: currentAttachmentData,
-                details,
-                timestamp: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
-                synced: false
-            };
-
-            const submitBtn = document.getElementById('submitBtn');
-            const submitIcon = document.getElementById('submitBtnIcon');
-            const submitText = document.getElementById('submitBtnText');
-
-            records.unshift(newRecord);
-            renderRecords();
-            updateStats();
-            resetFormState();
-
-            if (googleScriptUrl) {
-                submitBtn.disabled = true;
-                submitIcon.className = 'ph ph-spinner animate-spin text-lg';
-                submitText.textContent = 'กำลังส่งข้อมูลเข้า Google Sheet...';
-
-                const syncedOk = await sendRecordToGoogleSheet(newRecord);
-
-                submitBtn.disabled = false;
-                submitIcon.className = 'ph ph-floppy-disk text-lg';
-                submitText.textContent = 'บันทึกรายการค่าใช้จ่าย';
-
-                renderRecords();
-                updateSheetStatusUI();
-
-                if (syncedOk) {
-                    showToast('บันทึกและส่งข้อมูลเข้า Google Sheet เรียบร้อยแล้ว!');
-                } else {
-                    showToast('บันทึกในระบบแล้ว แต่ส่งเข้า Google Sheet ไม่สำเร็จ', true);
-                }
-            } else {
-                updateSheetStatusUI();
-                showToast('บันทึกข้อมูลแล้ว');
-            }
-        }
-
-        function resetFormState() {
-            const currentDate = document.getElementById('dateInput').value;
-            document.getElementById('expenseForm').reset();
-            document.getElementById('dateInput').value = currentDate || new Date().toISOString().split('T')[0];
-            clearFileInput();
-            clearLocationData();
-            handleCategoryChange();
-            handleTipsChange();
-        }
-
-        function renderRecords() {
-            const container = document.getElementById('recordsContainer');
-            const filterCat = document.getElementById('filterCategory').value;
-            const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
-
-            const filtered = records.filter(r => {
-                const matchCat = filterCat === 'ALL' || r.category === filterCat;
-                const matchSearch = r.description.toLowerCase().includes(searchQuery) ||
-                                    r.category.toLowerCase().includes(searchQuery) ||
-                                    (r.locationName && r.locationName.toLowerCase().includes(searchQuery));
-                return matchCat && matchSearch;
-            });
-
-            if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div class="p-12 text-center text-slate-400">
-                        <i class="ph ph-folder-open text-4xl mb-2"></i>
-                        <p class="text-sm">ยังไม่มีรายการบันทึกในหมวดหมู่นี้</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const badgeColors = {
-                'วิ่งงานรถ': 'bg-indigo-100 text-indigo-700',
-                'เบิกเงิน': 'bg-rose-100 text-rose-700',
-                'เชื้อเพลิง': 'bg-amber-100 text-amber-800',
-                'ล้างรถ': 'bg-cyan-100 text-cyan-700',
-                'ซ่อมรถ': 'bg-orange-100 text-orange-700',
-                'คืนเงิน': 'bg-emerald-100 text-emerald-700',
-                'ฝากซื้อของ': 'bg-purple-100 text-purple-700',
-                'อื่นๆ': 'bg-slate-100 text-slate-700'
-            };
-
-            container.innerHTML = filtered.map(rec => {
-                let breakdownHTML = '';
-                let primaryAmountHTML = '';
-
-                if (rec.category === 'วิ่งงานรถ') {
-                    const d = rec.details;
-                    primaryAmountHTML = `<span class="text-base font-bold text-indigo-600">฿${(d.runCost || 0).toLocaleString()}</span>`;
-                    breakdownHTML = `
-                        <div class="mt-2 flex flex-wrap gap-1.5 text-xs">
-                            <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">ค่าวิ่งงาน: <b>฿${(d.runCost || 0).toLocaleString()}</b></span>
-                            <span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md">เก็บเงินสด: <b>฿${(d.cashCollected || 0).toLocaleString()}</b></span>
-                            ${d.tollCost ? `<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">ทางด่วน: ฿${d.tollCost.toLocaleString()}</span>` : ''}
-                            ${d.parkingCost ? `<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">จอดรถ: ฿${d.parkingCost.toLocaleString()}</span>` : ''}
-                            ${d.hasTips === 'yes' ? `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-medium">💰 ทิป: ฿${(d.tipsAmount || 0).toLocaleString()}</span>` : `<span class="text-slate-400 px-1">👎 ไม่มีทิป</span>`}
-                        </div>
-                    `;
-                } else if (rec.category === 'เชื้อเพลิง') {
-                    const d = rec.details;
-                    primaryAmountHTML = `<span class="text-base font-bold text-amber-600">฿${(d.fuelAmount || 0).toLocaleString()}</span>`;
-                    breakdownHTML = `
-                        <div class="mt-1.5 text-xs">
-                            <span class="bg-amber-50 border border-amber-200 text-amber-800 px-2.5 py-0.5 rounded-md font-medium">ชนิดเชื้อเพลิง: ${d.fuelType}</span>
-                        </div>
-                    `;
-                } else {
-                    const amt = rec.details.amount || 0;
-                    const colorClass = rec.category === 'คืนเงิน' ? 'text-emerald-600' : 'text-rose-600';
-                    primaryAmountHTML = `<span class="text-base font-bold ${colorClass}">฿${amt.toLocaleString()}</span>`;
-                }
-
-                let locationHTML = '';
-                if (rec.locationName || (rec.lat && rec.lng)) {
-                    const mapUrl = rec.lat && rec.lng
-                        ? `https://www.google.com/maps?q=${rec.lat},${rec.lng}`
-                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(rec.locationName)}`;
-                    const displayLoc = rec.locationName || `${rec.lat}, ${rec.lng}`;
-
-                    locationHTML = `
-                        <div class="pt-1 flex items-center text-xs text-slate-500">
-                            <a href="${mapUrl}" target="_blank" rel="noopener noreferrer"
-                               class="inline-flex items-center gap-1 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/80 px-2 py-0.5 rounded-md transition max-w-full">
-                                <i class="ph ph-map-pin-line shrink-0"></i>
-                                <span class="truncate">${escapeHTML(displayLoc)}</span>
-                                <i class="ph ph-arrow-square-out text-[10px] shrink-0 opacity-70"></i>
-                            </a>
-                        </div>
-                    `;
-                }
-
-                const syncBadgeHTML = rec.synced
-                    ? `<span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-md flex items-center gap-1"><i class="ph ph-cloud-check"></i> บันทึกลง Sheet แล้ว</span>`
-                    : `<button onclick="syncSingleRecord('${rec.id}')" class="text-[11px] bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md flex items-center gap-1 transition"><i class="ph ph-cloud-arrow-up"></i> กดส่งเข้า Sheet</button>`;
-
-                let attachmentBtnHTML = '';
-                if (rec.attachmentData) {
-                    if (rec.attachmentData.startsWith('http')) {
-                        attachmentBtnHTML = `
-                            <a href="${rec.attachmentData}" target="_blank" rel="noopener noreferrer" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-md flex items-center space-x-1 transition">
-                                <i class="ph ph-link"></i>
-                                <span>เปิดดูสลิป</span>
-                            </a>
-                        `;
-                    } else {
-                        attachmentBtnHTML = `
-                            <button onclick="openImageModal('${rec.id}')" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-md flex items-center space-x-1 transition">
-                                <i class="ph ph-image"></i>
-                                <span>ดูรูปแนบ</span>
-                            </button>
-                        `;
-                    }
-                }
-
-                return `
-                    <div class="p-4 sm:px-6 hover:bg-slate-50/80 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div class="space-y-1 flex-1 min-w-0">
-                            <div class="flex items-center flex-wrap gap-2">
-                                <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full ${badgeColors[rec.category] || 'bg-slate-100'}">${rec.category}</span>
-                                <span class="text-xs text-slate-400 flex items-center"><i class="ph ph-calendar-blank mr-1"></i> ${rec.date} (${rec.timestamp})</span>
-                                ${syncBadgeHTML}
-                                ${attachmentBtnHTML}
-                            </div>
-                            <p class="text-sm font-medium text-slate-800 pt-0.5">${escapeHTML(rec.description)}</p>
-                            ${locationHTML}
-                            ${breakdownHTML}
-                        </div>
-                        <div class="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 shrink-0">
-                            ${primaryAmountHTML}
-                            <button onclick="deleteRecord('${rec.id}')" class="text-xs text-slate-400 hover:text-rose-600 mt-1 flex items-center space-x-1 transition">
-                                <i class="ph ph-trash"></i>
-                                <span>ลบ</span>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function updateStats() {
-            let totalExpense = 0;
-            let totalCashIn = 0;
-            let totalTips = 0;
-
-            records.forEach(r => {
-                const d = r.details;
-                if (r.category === 'วิ่งงานรถ') {
-                    totalExpense += (d.runCost || 0) + (d.tollCost || 0) + (d.parkingCost || 0);
-                    totalCashIn += (d.cashCollected || 0);
-                    totalTips += (d.tipsAmount || 0);
-                } else if (r.category === 'เชื้อเพลิง') {
-                    totalExpense += (d.fuelAmount || 0);
-                } else if (r.category === 'คืนเงิน') {
-                    totalCashIn += (d.amount || 0);
-                } else {
-                    totalExpense += (d.amount || 0);
-                }
-            });
-
-            document.getElementById('statTotalCount').textContent = `${records.length} รายการ`;
-            document.getElementById('statTotalExpense').textContent = `฿${totalExpense.toLocaleString()}`;
-            document.getElementById('statTotalCashIn').textContent = `฿${totalCashIn.toLocaleString()}`;
-            document.getElementById('statTotalTips').textContent = `฿${totalTips.toLocaleString()}`;
-        }
-
-        function deleteRecord(id) {
-            records = records.filter(r => r.id !== id);
-            renderRecords();
-            updateStats();
-            showToast('ลบรายการออกจากหน้าจอแล้ว');
-        }
-
-        function openImageModal(id) {
-            const rec = records.find(r => r.id === id);
-            if (!rec || !rec.attachmentData) return;
-            document.getElementById('modalImageTitle').textContent = rec.attachmentName || 'รูปใบเสร็จ / สลิป';
-            document.getElementById('modalImageElement').src = rec.attachmentData;
-            const modal = document.getElementById('imageModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closeImageModal() {
-            const modal = document.getElementById('imageModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        function showToast(message, isError = false) {
-            const box = document.getElementById('toastBox');
-            const icon = document.getElementById('toastIcon');
-            const msg = document.getElementById('toastMessage');
-
-            msg.textContent = message;
-            icon.className = isError
-                ? 'ph ph-warning-circle text-rose-400 text-lg'
-                : 'ph ph-check-circle text-emerald-400 text-lg';
-
-            box.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                box.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
-
-        function escapeHTML(str) {
-            return String(str || '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-        function exportCSV() {
-            if (records.length === 0) {
-                showToast('ไม่มีข้อมูลสำหรับส่งออก', true);
-                return;
-            }
-
-            const headers = [
-                'วันที่', 'เวลาบันทึก', 'ประเภท', 'รายละเอียด',
-                'สถานที่ (Location)', 'พิกัด (Lat, Lng)', 'ลิงก์แผนที่ Google Maps',
-                'ค่าวิ่งงาน [฿]', 'เก็บเงินสด [฿]', 'ค่าทางด่วน [฿]', 'ค่าจอดรถ [฿]', 'มีทิป', 'Tips [฿]',
-                'ชนิดเชื้อเพลิง', 'ค่าเชื้อเพลิง [฿]', 'จำนวนเงินหมวดอื่นๆ [฿]', 'ไฟล์แนบ/ลิงก์สลิป'
-            ];
-
-            const rows = records.map(r => {
-                const d = r.details;
-                const coordsStr = (r.lat && r.lng) ? `${r.lat}, ${r.lng}` : '';
-                const mapLink = (r.lat && r.lng)
-                    ? `https://www.google.com/maps?q=${r.lat},${r.lng}`
-                    : (r.locationName ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.locationName)}` : '');
-
-                return [
-                    r.date,
-                    r.timestamp,
-                    r.category,
-                    `"${(r.description || '').replace(/"/g, '""')}"`,
-                    `"${(r.locationName || '').replace(/"/g, '""')}"`,
-                    `"${coordsStr}"`,
-                    `"${mapLink}"`,
-                    d.runCost || '',
-                    d.cashCollected || '',
-                    d.tollCost || '',
-                    d.parkingCost || '',
-                    d.hasTips ? (d.hasTips === 'yes' ? 'มี' : 'ไม่มี') : '',
-                    d.tipsAmount || '',
-                    d.fuelType || '',
-                    d.fuelAmount || '',
-                    d.amount || '',
-                    `"${r.attachmentName || ''}"`
-                ].join(',');
-            });
-
-            const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `ค่าใช้จ่ายออฟฟิศ_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast('ดาวน์โหลดไฟล์ Excel (CSV) สำเร็จ!');
-        }
-    </script>
+      } catch (e) {
+        console.log('ใช้ข้อมูล LocalStorage ล่าสุด');
+      }
+      icon.classList.remove('fa-spin');
+    }
+
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      document.getElementById('recordCount').textContent = `${records.length} รายการ`;
+
+      let totalExp = 0, totalCash = 0;
+      records.forEach(r => {
+        totalExp += Number(r.netExpense || 0);
+        totalCash += Number(r.cashIn || 0);
+      });
+
+      document.getElementById('sumExpense').textContent = `฿${totalExp.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`;
+      document.getElementById('sumCashIn').textContent = `฿${totalCash.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`;
+
+      if (records.length === 0) {
+        list.innerHTML = `<p class="text-center text-gray-400 text-sm py-10">ยังไม่มีรายการบันทึก</p>`;
+        return;
+      }
+
+      list.innerHTML = records.map(r => `
+        <div class="p-4 hover:bg-gray-50 transition flex items-start justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">${r.category}${r.fuelType ? ` (${r.fuelType})` : ''}</span>
+              <span class="text-xs text-gray-400">${r.date || ''}</span>
+            </div>
+            <p class="text-sm font-medium text-gray-800">${r.details || '-'}</p>
+            ${r.locationName || r.mapUrl ? `
+              <a href="${r.mapUrl || '#'}" target="_blank" class="inline-flex items-center gap-1 text-[11px] text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                <i class="fa-solid fa-location-dot"></i> ${r.locationName || 'ดูแผนที่ GPS'}
+              </a>
+            ` : ''}
+          </div>
+          <div class="text-right shrink-0">
+            ${r.netExpense > 0 ? `<p class="text-sm font-bold text-rose-600">-฿${Number(r.netExpense).toLocaleString()}</p>` : ''}
+            ${r.cashIn > 0 ? `<p class="text-xs font-semibold text-emerald-600">+฿${Number(r.cashIn).toLocaleString()}</p>` : ''}
+            ${(r.imageBase64 || r.fileUrl) ? `
+              <button onclick="viewFullImage('${r.imageBase64 || r.fileUrl}')" class="mt-1 text-[11px] text-indigo-600 underline">
+                <i class="fa-solid fa-receipt"></i> ดูสลิป
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function exportCSV() {
+      if (records.length === 0) return alert('ยังไม่มีข้อมูลสำหรับส่งออก');
+      const headers = ['วันที่', 'ประเภท', 'รายละเอียด', 'สถานที่', 'พิกัดแผนที่', 'รายจ่ายสุทธิ', 'รายรับ/เงินสด'];
+      const rows = records.map(r => [
+        r.date, r.category, `"${(r.details || '').replace(/"/g, '""')}"`,
+        `"${(r.locationName || '').replace(/"/g, '""')}"`, r.mapUrl || '', r.netExpense || 0, r.cashIn || 0
+      ]);
+      const csv = '\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `office_expenses_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+  </script>
 </body>
 </html>
