@@ -34,11 +34,14 @@
           <h1 class="text-xl font-bold leading-tight">ค่าใช้จ่ายออฟฟิศ</h1>
           <p class="text-xs text-indigo-100 flex items-center gap-1.5">
             <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span id="syncText">เชื่อมต่อ Google Sheet พร้อมใช้งาน</span>
+            <span id="syncText">เชื่อมต่อ Google Sheet (WepApp) พร้อมใช้งาน</span>
           </p>
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <a href="https://docs.google.com/spreadsheets/d/1ShKjTR3FVVYUyu5EKimiOGO77vr38KO_vaYHQ_3Ro2k/edit" target="_blank" rel="noopener noreferrer" class="bg-white/15 hover:bg-white/25 text-white text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5">
+          <i class="fa-solid fa-table"></i> เปิด Sheet
+        </a>
         <button type="button" onclick="fetchFromSheet()" class="bg-white/15 hover:bg-white/25 text-white text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5">
           <i class="fa-solid fa-rotate" id="refreshIcon"></i> ซิงค์ข้อมูล
         </button>
@@ -242,9 +245,17 @@
     <img id="modalImgSrc" class="max-w-full max-h-[90vh] rounded-xl shadow-2xl">
   </div>
 
+  <!-- Toast แจ้งเตือน -->
+  <div id="toastBox" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div id="toastInner" class="bg-gray-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs sm:text-sm">
+      <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+      <span id="toastMessage">บันทึกสำเร็จ</span>
+    </div>
+  </div>
+
   <script>
-    // ลิงก์ Web App URL ของคุณ
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz5hTNdrpiutbN9PoB8Z3eKvGyKp2xJY6yB_HKbvC7TM7iTz-c4Ya46rHZPLC8wCZJQ/exec";
+    // ลิงก์ Web App URL ใหม่ล่าสุดของคุณ
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzS7z62Yt31PU_4cssZbTmMsEqXAP45c8XW5X8U2HBZvG4a10oKLKXOwjVbuM1shlxw/exec";
 
     let records = [];
     try {
@@ -258,13 +269,26 @@
     let cameraStream = null;
     let facingMode = 'environment';
 
-    // ตั้งค่าเริ่มต้นทันทีเมื่อเปิดหน้าเว็บ
     window.addEventListener('DOMContentLoaded', function() {
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('date').value = today;
       renderHistory();
       fetchFromSheet();
     });
+
+    function showNotice(msg, isError) {
+      const box = document.getElementById('toastBox');
+      const icon = document.getElementById('toastIcon');
+      const text = document.getElementById('toastMessage');
+      text.textContent = msg;
+      icon.className = isError
+        ? 'fa-solid fa-triangle-exclamation text-rose-400 text-base'
+        : 'fa-solid fa-circle-check text-emerald-400 text-base';
+      box.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(function() {
+        box.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
+    }
 
     function selectCategory(catId) {
       document.getElementById('category').value = catId;
@@ -378,7 +402,7 @@
     function getCurrentLocation() {
       const btn = document.getElementById('gpsBtn');
       if (!navigator.geolocation) {
-        alert('เบราว์เซอร์ของคุณไม่รองรับการดึงพิกัด GPS');
+        showNotice('เบราว์เซอร์ของคุณไม่รองรับการดึงพิกัด GPS', true);
         return;
       }
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังหาพิกัด...';
@@ -399,8 +423,9 @@
           }
         } catch (e) {}
         btn.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i> ดึงพิกัดสำเร็จ';
+        showNotice('ดึงพิกัดสถานที่ปัจจุบันสำเร็จ!', false);
       }, function() {
-        alert('ไม่สามารถดึงพิกัดได้ กรุณาอนุญาตการเข้าถึงตำแหน่งที่ตั้ง (Location)');
+        showNotice('ไม่สามารถดึงพิกัดได้ กรุณาอนุญาตการเข้าถึงตำแหน่งที่ตั้ง', true);
         btn.innerHTML = '<i class="fa-solid fa-crosshairs"></i> ดึงพิกัดปัจจุบัน';
       }, { enableHighAccuracy: true, timeout: 10000 });
     }
@@ -561,14 +586,15 @@
           document.getElementById('details').value = '';
           clearImage();
           selectCategory(cat);
-          btn.innerHTML = '<i class="fa-solid fa-check"></i> บันทึกลง Google Sheet สำเร็จ!';
+          btn.innerHTML = '<i class="fa-solid fa-check"></i> บันทึกลงแท็บ WepApp สำเร็จ!';
+          showNotice('บันทึกข้อมูลลงแท็บ WepApp สำเร็จ!', false);
         } else {
-          alert('❌ เกิดข้อผิดพลาดจาก Google Sheet:\n' + (result.message || 'ไม่ทราบสาเหตุ'));
+          showNotice('เกิดข้อผิดพลาด: ' + (result.message || 'ไม่ทราบสาเหตุ'), true);
           btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ลองใหม่อีกครั้ง';
         }
       } catch (err) {
         console.error('Error:', err);
-        alert('⚠️ ไม่สามารถติดต่อ Google Sheet ได้ กรุณาตรวจสอบว่า:\n1. กด Run ฟังก์ชัน testConnection ใน Apps Script เพื่ออนุญาตสิทธิ์แล้ว\n2. ตั้งค่า Deploy > Who has access เป็น Anyone (ทุกคน) แล้ว');
+        showNotice('ไม่สามารถติดต่อ Google Sheet ได้ กรุณาตรวจสอบสิทธิ์ Anyone ใน Apps Script', true);
         btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> บันทึกข้อมูลลง Google Sheet';
       } finally {
         btn.disabled = false;
@@ -588,7 +614,7 @@
           records = json.data;
           localStorage.setItem('office_expenses_v1', JSON.stringify(records));
           renderHistory();
-          document.getElementById('syncText').textContent = 'ซิงค์กับ Google Sheet ล่าสุดแล้ว';
+          document.getElementById('syncText').textContent = 'ซิงค์กับแท็บ WepApp ล่าสุดแล้ว';
         }
       } catch (e) {
         console.log('ใช้ข้อมูล LocalStorage ล่าสุด');
@@ -650,7 +676,10 @@
     }
 
     function exportCSV() {
-      if (records.length === 0) return alert('ยังไม่มีข้อมูลสำหรับส่งออก');
+      if (records.length === 0) {
+        showNotice('ยังไม่มีข้อมูลสำหรับส่งออก', true);
+        return;
+      }
       const headers = ['วันที่', 'ประเภท', 'รายละเอียด', 'สถานที่', 'พิกัดแผนที่', 'รายจ่ายสุทธิ', 'รายรับ/เงินสด'];
       const rows = records.map(function(r) {
         return [
