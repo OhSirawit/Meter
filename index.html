@@ -3,159 +3,150 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบบันทึกค่าใช้จ่ายออฟฟิศ (Minimal Zen Edition)</title>
+  <title>ระบบบันทึกค่าใช้จ่ายออฟฟิศ</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Noto+Serif+Thai:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     :root {
       --washi-bg: #F9F6F0;
-      --sumi-ink: #2B2B2B;
-      --hinoki-border: #E5DEC9;
-      --akane-red: #C84B31;
+      --washi-card: #FFFDF9;
+      --wood-border: #E5DEC9;
+      --sumi-ink: #2C2A29;
+      --ai-indigo: #263547;
       --matcha-green: #5F7A61;
-      --ai-indigo: #2C3E50;
+      --akane-red: #C84B31;
     }
     body {
       font-family: 'Noto Sans Thai', sans-serif;
       background-color: var(--washi-bg);
-      background-image: 
-        radial-gradient(circle at 100% 100%, rgba(200, 75, 49, 0.03) 0, transparent 40%),
-        radial-gradient(circle at 0% 0%, rgba(95, 122, 97, 0.05) 0, transparent 40%),
-        radial-gradient(#dcd3be 0.6px, transparent 0.6px);
-      background-size: 100% 100%, 100% 100%, 24px 24px;
+      background-image: radial-gradient(#DFD7C4 0.75px, transparent 0.75px);
+      background-size: 20px 20px;
       color: var(--sumi-ink);
     }
-    .fade-in { animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
-    
-    /* Washi Paper & Shoji Screen Card Styling */
-    .shoji-card {
-      background: rgba(255, 253, 249, 0.94);
-      backdrop-filter: blur(8px);
-      border: 1px solid var(--hinoki-border);
-      box-shadow: 0 8px 24px -8px rgba(43, 43, 43, 0.06);
+    .serif-title {
+      font-family: 'Noto Serif Thai', serif;
     }
-    .washi-input {
-      transition: all 0.2s ease;
-      border: 1px solid #DCD5C4;
+    .washi-card {
+      background: var(--washi-card);
+      border: 1px solid var(--wood-border);
+      box-shadow: 0 8px 24px -6px rgba(60, 52, 40, 0.06);
+    }
+    .zen-input {
+      background-color: #FCF9F2;
+      border: 1px solid #DCD3BC;
+      color: var(--sumi-ink);
+      transition: all 0.25s ease;
+    }
+    .zen-input:focus {
       background-color: #FFFFFF;
-      color: #2B2B2B;
-    }
-    .washi-input:focus {
-      border-color: var(--akane-red);
-      box-shadow: 0 0 0 3px rgba(200, 75, 49, 0.12);
+      border-color: var(--ai-indigo);
+      box-shadow: 0 0 0 3px rgba(38, 53, 71, 0.1);
       outline: none;
     }
-    .hanko-stamp {
-      border: 1.5px solid var(--akane-red);
+    .hanko-badge {
+      border: 2px solid var(--akane-red);
       color: var(--akane-red);
-      letter-spacing: 0.02em;
+      background: rgba(200, 75, 49, 0.06);
+      font-weight: 700;
     }
-    .btn-indigo-jp {
-      background-color: #263547;
+    .indigo-btn {
+      background-color: var(--ai-indigo);
       color: #F9F6F0;
       transition: all 0.25s ease;
-      box-shadow: 0 6px 16px -4px rgba(38, 53, 71, 0.25);
     }
-    .btn-indigo-jp:hover {
-      background-color: #1B2634;
+    .indigo-btn:hover {
+      background-color: #1B2735;
       transform: translateY(-1px);
-      box-shadow: 0 10px 20px -4px rgba(38, 53, 71, 0.35);
+      box-shadow: 0 10px 20px -6px rgba(38, 53, 71, 0.35);
     }
-    /* Custom Scrollbar */
+    .seigaiha-header {
+      background-color: #263547;
+      background-image: radial-gradient(circle at 100% 150%, #263547 24%, #314357 25%, #314357 28%, #263547 29%, #263547 36%, #314357 36%, #314357 40%, transparent 40%, transparent),
+                        radial-gradient(circle at 0    150%, #263547 24%, #314357 25%, #314357 28%, #263547 29%, #263547 36%, #314357 36%, #314357 40%, transparent 40%, transparent);
+      background-size: 40px 20px;
+    }
+    .fade-in { animation: fadeIn 0.25s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
     ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: #F2ECE1; }
-    ::-webkit-scrollbar-thumb { background: #C7BFA9; border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: #A89F88; }
+    ::-webkit-scrollbar-track { background: #F4EFE6; }
+    ::-webkit-scrollbar-thumb { background: #C8BFA8; border-radius: 99px; }
   </style>
 </head>
-<body class="min-h-screen pb-16 antialiased selection:bg-[#C84B31] selection:text-white">
+<body class="min-h-screen pb-14">
 
-  <!-- Top Accent Line (Akane Red & Matcha) -->
-  <div class="h-1.5 w-full bg-gradient-to-r from-[#263547] via-[#C84B31] to-[#5F7A61]"></div>
-
-  <!-- Header -->
-  <header class="bg-[#FFFDF9]/90 backdrop-blur-md sticky top-0 z-30 border-b border-[#E5DEC9]">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <!-- Minimal Seal Icon (Thai) -->
-        <div class="w-12 h-12 rounded-xl bg-[#C84B31] text-[#FFFDF9] flex flex-col items-center justify-center shadow-sm border border-[#A63A22] shrink-0">
-          <i class="fa-solid fa-file-invoice-dollar text-lg"></i>
+  <!-- Header สไตล์ญี่ปุ่นมินิมอล (ภาษาไทยล้วน) -->
+  <header class="seigaiha-header text-[#F9F6F0] sticky top-0 z-30 border-b-2 border-[#C5A880]/40 shadow-md">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-xl bg-[#C84B31] text-white flex items-center justify-center shadow-inner border border-white/20 text-lg">
+          <i class="fa-solid fa-book-bookmark"></i>
         </div>
         <div>
-          <div class="flex items-center gap-2.5">
-            <h1 class="text-lg sm:text-xl font-bold tracking-tight text-[#2B2B2B]">บันทึกค่าใช้จ่ายออฟฟิศ</h1>
-            <span class="hanko-stamp text-[10px] px-2 py-0.5 rounded font-bold bg-[#C84B31]/5">ฝ่ายบัญชี • WepApp</span>
+          <div class="flex items-center gap-2">
+            <h1 class="serif-title text-xl font-bold tracking-wide text-[#FAF6EE]">สมุดบันทึกค่าใช้จ่ายออฟฟิศ</h1>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-white/10 text-[#E5DEC9] border border-white/15">ระบบบัญชี</span>
           </div>
-          <p class="text-xs text-[#6E6A63] flex items-center gap-2 mt-1">
-            <span id="syncDot" class="w-2 h-2 rounded-full bg-[#5F7A61] animate-pulse"></span>
+          <p class="text-xs text-[#D0C9B8] flex items-center gap-2 mt-0.5">
+            <span id="syncDot" class="w-2 h-2 rounded-full bg-[#7FA982] animate-pulse"></span>
             <span id="syncText">เชื่อมต่อฐานข้อมูล WepApp พร้อมใช้งาน</span>
           </p>
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <a href="https://docs.google.com/spreadsheets/d/1ShKjTR3FVVYUyu5EKimiOGO77vr38KO_vaYHQ_3Ro2k/edit" target="_blank" rel="noopener noreferrer" class="bg-[#F4EFE6] hover:bg-[#EAE2D3] text-[#3D3A35] border border-[#DCD3C0] text-xs px-3.5 py-2.5 rounded-xl font-medium transition flex items-center gap-2">
-          <i class="fa-solid fa-table text-[#5F7A61]"></i> <span class="hidden sm:inline">ตารางข้อมูล (Sheet)</span>
-        </a>
-        <button type="button" onclick="fetchFromSheet()" class="bg-[#F4EFE6] hover:bg-[#EAE2D3] text-[#3D3A35] border border-[#DCD3C0] text-xs px-3.5 py-2.5 rounded-xl font-medium transition flex items-center gap-2">
-          <i class="fa-solid fa-rotate text-[#C84B31]" id="refreshIcon"></i> <span>ซิงค์ข้อมูล</span>
+      <div class="flex items-center gap-2.5">
+        <button type="button" onclick="fetchFromSheet()" class="bg-[#F9F6F0]/10 hover:bg-[#F9F6F0]/20 text-[#F9F6F0] border border-[#F9F6F0]/20 text-xs px-3.5 py-2 rounded-lg font-medium transition flex items-center gap-2">
+          <i class="fa-solid fa-arrows-rotate" id="refreshIcon"></i> ซิงค์ข้อมูล
         </button>
-        <button type="button" onclick="exportCSV()" class="bg-[#5F7A61] hover:bg-[#4E6650] text-white text-xs px-4 py-2.5 rounded-xl font-semibold shadow-sm transition flex items-center gap-2">
-          <i class="fa-solid fa-file-csv"></i> <span>ส่งออก CSV</span>
+        <button type="button" onclick="exportCSV()" class="bg-[#5F7A61] hover:bg-[#4E6650] text-white text-xs px-4 py-2 rounded-lg font-semibold shadow-sm transition flex items-center gap-2">
+          <i class="fa-solid fa-file-csv"></i> ส่งออกไฟล์ CSV
         </button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 sm:px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+  <main class="max-w-5xl mx-auto px-4 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-7">
     
     <!-- ฟอร์มบันทึกข้อมูล (ซ้าย) -->
     <section class="lg:col-span-7">
-      <form id="expenseForm" onsubmit="handleSubmit(event)" class="shoji-card rounded-2xl overflow-hidden">
-        <!-- หัวการ์ดสไตล์ป้ายไม้ฮิโนกิ -->
-        <div class="bg-[#F2ECE1] px-6 sm:px-8 py-4 border-b border-[#E2D9C5] flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <span class="w-8 h-8 rounded-lg bg-[#263547] text-[#F9F6F0] flex items-center justify-center text-xs font-bold">
-              <i class="fa-solid fa-pen-nib"></i>
-            </span>
-            <div>
-              <h2 class="font-bold text-[#2B2B2B] text-base">บันทึกรายการเบิกจ่ายใหม่</h2>
-              <p class="text-[11px] text-[#7A746B]">กรุณากรอกข้อมูลให้ครบถ้วนเพื่อความถูกต้องทางบัญชี</p>
-            </div>
+      <form id="expenseForm" onsubmit="handleSubmit(event)" class="washi-card rounded-2xl overflow-hidden relative">
+        <!-- แถบสีไม้ด้านบน -->
+        <div class="h-1.5 bg-gradient-to-r from-[#263547] via-[#5F7A61] to-[#C84B31]"></div>
+
+        <div class="px-6 py-4 border-b border-[#E5DEC9] bg-[#F5F0E6]/60 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="w-1.5 h-5 rounded-full bg-[#C84B31]"></span>
+            <h2 class="serif-title font-bold text-base text-[#2C2A29]">แบบฟอร์มบันทึกรายการใหม่</h2>
           </div>
-          <span class="text-[11px] text-[#C84B31] bg-[#C84B31]/10 border border-[#C84B31]/20 px-2.5 py-1 rounded-md font-semibold">* จำเป็น</span>
+          <span class="hanko-badge text-[10px] px-2 py-0.5 rounded tracking-wider">กรอกข้อมูลให้ครบ</span>
         </div>
 
-        <div class="p-6 sm:p-8 space-y-6">
-          <!-- วันที่ & ประเภท -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <!-- วันที่ -->
+        <div class="p-6 space-y-5">
+          <!-- วันที่ และ ประเภท (Drop List) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-bold text-[#5A554C] mb-2">
-                <i class="fa-regular fa-calendar text-[#C84B31] mr-1"></i> วันที่ทำรายการ <span class="text-[#C84B31]">*</span>
+              <label class="block text-xs font-bold text-[#5C5549] mb-1.5">
+                วันที่ทำรายการ <span class="text-[#C84B31]">*</span>
               </label>
-              <input type="date" id="date" required class="washi-input w-full rounded-xl px-4 py-3 text-sm font-medium">
+              <input type="date" id="date" required class="zen-input w-full rounded-xl px-3.5 py-2.5 text-sm font-medium">
             </div>
 
-            <!-- ประเภท (แบบ Drop List) -->
             <div>
-              <label for="category" class="block text-xs font-bold text-[#5A554C] mb-2">
-                <i class="fa-solid fa-tag text-[#C84B31] mr-1"></i> หมวดหมู่รายการ <span class="text-[#C84B31]">*</span>
+              <label class="block text-xs font-bold text-[#5C5549] mb-1.5">
+                ประเภทรายการ <span class="text-[#C84B31]">*</span>
               </label>
               <div class="relative">
-                <select id="category" required onchange="selectCategory(this.value)" class="washi-input w-full appearance-none rounded-xl px-4 py-3 pr-10 text-sm font-semibold cursor-pointer">
+                <select id="category" required onchange="selectCategory(this.value)" class="zen-input w-full appearance-none rounded-xl px-3.5 py-2.5 pr-9 text-sm font-semibold cursor-pointer">
                   <option value="วิ่งงานรถ">🚚 วิ่งงานรถ</option>
-                  <option value="เบิกเงิน">💴 เบิกเงินล่วงหน้า</option>
+                  <option value="เบิกเงิน">💴 เบิกเงิน</option>
                   <option value="เชื้อเพลิง">⛽ เชื้อเพลิง</option>
                   <option value="ล้างรถ">🫧 ล้างรถ</option>
-                  <option value="ซ่อมรถ">🔧 ซ่อมบำรุงรถ</option>
-                  <option value="คืนเงิน">🍵 คืนเงินสด</option>
+                  <option value="ซ่อมรถ">🔧 ซ่อมรถ</option>
+                  <option value="คืนเงิน">🍵 คืนเงิน</option>
                   <option value="ฝากซื้อของ">🛍️ ฝากซื้อของ</option>
-                  <option value="อื่นๆ">🎐 อื่นๆ</option>
+                  <option value="อื่นๆ">📌 อื่นๆ</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#7A746B]">
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#7A7265]">
                   <i class="fa-solid fa-chevron-down text-xs"></i>
                 </div>
               </div>
@@ -163,133 +154,118 @@
           </div>
 
           <!-- พื้นที่ Dynamic ตามประเภทที่เลือก (Section 2 - 14) -->
-          <div id="dynamicSection" class="fade-in bg-[#F6F2E9] p-5 sm:p-6 rounded-xl border border-[#E2D9C5] space-y-4">
-            <!-- ค่าเริ่มต้น: วิ่งงานรถ -->
-            <div class="flex items-center justify-between border-b border-[#E2D9C5] pb-2.5">
-              <span class="text-xs font-bold text-[#263547] flex items-center gap-2">
-                <i class="fa-solid fa-route text-[#C84B31]"></i> ส่วนที่ 2: รายละเอียดวิ่งงานรถ
+          <div id="dynamicSection" class="fade-in bg-[#F4EFE6]/70 p-5 rounded-xl border border-[#DFD7C4] space-y-4">
+            <div class="flex items-center justify-between border-b border-[#DFD7C4] pb-2">
+              <span class="text-xs font-bold text-[#263547] flex items-center gap-1.5">
+                <i class="fa-solid fa-car-side text-[#C84B31]"></i> รายละเอียดวิ่งงานรถ
               </span>
-              <span class="text-[11px] text-[#7A746B] font-medium">หน่วย: บาท (THB)</span>
+              <span class="text-[11px] text-[#7A7265]">หน่วย : บาท (฿)</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-3.5">
               <div>
-                <label class="block text-xs font-semibold text-[#5A554C] mb-1.5">ค่าวิ่งงาน [฿] <span class="text-[#C84B31]">*</span></label>
-                <input type="number" step="0.01" id="runFee" required placeholder="0.00" class="washi-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold">
+                <label class="block text-xs font-semibold text-[#5C5549] mb-1">ค่าวิ่งงาน [฿] <span class="text-[#C84B31]">*</span></label>
+                <input type="number" step="0.01" id="runFee" required placeholder="0.00" class="zen-input w-full rounded-lg px-3 py-2 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-semibold text-[#5A554C] mb-1.5">เก็บเงินสด [฿] <span class="text-[#C84B31]">*</span></label>
-                <input type="number" step="0.01" id="cashCollected" required placeholder="0.00" class="washi-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold">
+                <label class="block text-xs font-semibold text-[#5C5549] mb-1">เก็บเงินสด [฿] <span class="text-[#C84B31]">*</span></label>
+                <input type="number" step="0.01" id="cashCollected" required placeholder="0.00" class="zen-input w-full rounded-lg px-3 py-2 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-semibold text-[#5A554C] mb-1.5">ค่าทางด่วน [฿]</label>
-                <input type="number" step="0.01" id="tollFee" placeholder="0.00" class="washi-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold">
+                <label class="block text-xs font-semibold text-[#5C5549] mb-1">ค่าทางด่วน [฿]</label>
+                <input type="number" step="0.01" id="tollFee" placeholder="0.00" class="zen-input w-full rounded-lg px-3 py-2 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-semibold text-[#5A554C] mb-1.5">ค่าจอดรถ [฿]</label>
-                <input type="number" step="0.01" id="parkingFee" placeholder="0.00" class="washi-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold">
+                <label class="block text-xs font-semibold text-[#5C5549] mb-1">ค่าจอดรถ [฿]</label>
+                <input type="number" step="0.01" id="parkingFee" placeholder="0.00" class="zen-input w-full rounded-lg px-3 py-2 text-sm">
               </div>
             </div>
-            <div class="pt-3 border-t border-[#E2D9C5]">
-              <label class="block text-xs font-semibold text-[#3D3A35] mb-2">🎐 ค่าตอบแทนพิเศษ / ทิป (Tips) <span class="text-[#C84B31]">*</span></label>
+            <div class="pt-3 border-t border-[#DFD7C4]">
+              <label class="block text-xs font-semibold text-[#5C5549] mb-2">เงินพิเศษ / ทิป (Tips) <span class="text-[#C84B31]">*</span></label>
               <div class="grid grid-cols-2 gap-3">
-                <label class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-[#DCD3C0] bg-white hover:border-[#C84B31] text-xs font-semibold cursor-pointer transition">
-                  <input type="radio" name="hasTips" value="yes" onchange="toggleTipsInput(true)" class="accent-[#C84B31]" required> 👍 มีทิป
+                <label class="flex items-center justify-center gap-2 p-2 rounded-lg border border-[#DCD3BC] bg-[#FFFDF9] cursor-pointer hover:border-[#263547] text-xs font-semibold">
+                  <input type="radio" name="hasTips" value="yes" onchange="toggleTipsInput(true)" required class="accent-[#263547]"> 👍 มีทิป
                 </label>
-                <label class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-[#DCD3C0] bg-white hover:border-[#C84B31] text-xs font-semibold cursor-pointer transition">
-                  <input type="radio" name="hasTips" value="no" onchange="toggleTipsInput(false)" class="accent-[#C84B31]" checked> 👎 ไม่มีทิป
+                <label class="flex items-center justify-center gap-2 p-2 rounded-lg border border-[#DCD3BC] bg-[#FFFDF9] cursor-pointer hover:border-[#263547] text-xs font-semibold">
+                  <input type="radio" name="hasTips" value="no" onchange="toggleTipsInput(false)" checked class="accent-[#263547]"> 👎 ไม่มีทิป
                 </label>
               </div>
-              <div id="tipsBox" class="hidden mt-3.5 fade-in">
-                <label class="block text-xs font-semibold text-[#C84B31] mb-1.5">ระบุจำนวนเงิน Tips [฿] (Section 14) <span class="text-[#C84B31]">*</span></label>
-                <input type="number" step="0.01" id="tipsAmount" placeholder="0.00" class="washi-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold">
+              <div id="tipsBox" class="hidden mt-3">
+                <label class="block text-xs font-semibold text-[#5C5549] mb-1">จำนวนเงินทิป [฿] <span class="text-[#C84B31]">*</span></label>
+                <input type="number" step="0.01" id="tipsAmount" placeholder="0.00" class="zen-input w-full rounded-lg px-3 py-2 text-sm">
               </div>
             </div>
           </div>
 
           <!-- รายละเอียด -->
           <div>
-            <label class="block text-xs font-bold text-[#5A554C] mb-2">
-              <i class="fa-regular fa-pen-to-square text-[#C84B31] mr-1"></i> รายละเอียดเพิ่มเติม <span class="text-[#C84B31]">*</span>
+            <label class="block text-xs font-bold text-[#5C5549] mb-1.5">
+              รายละเอียดเพิ่มเติม <span class="text-[#C84B31]">*</span>
             </label>
-            <textarea id="details" rows="2" required placeholder="ระบุรายละเอียดงาน / ชื่อลูกค้า / จุดหมายปลายทาง หรือรายการสิ่งของ..." class="washi-input w-full rounded-xl px-4 py-3 text-sm"></textarea>
+            <textarea id="details" rows="2" required placeholder="ระบุรายละเอียดงาน / จุดหมาย / รายการสิ่งของ..." class="zen-input w-full rounded-xl px-3.5 py-2.5 text-sm"></textarea>
           </div>
 
-          <!-- พิกัดสถานที่ (Location) -->
-          <div class="bg-[#F6F2E9]/80 p-4 sm:p-5 rounded-xl border border-[#E2D9C5] space-y-3">
-            <div class="flex items-center justify-between gap-2">
-              <label class="text-xs font-bold text-[#3D3A35] flex items-center gap-2">
-                <span class="w-6 h-6 rounded-md bg-[#C84B31]/10 text-[#C84B31] flex items-center justify-center">
-                  <i class="fa-solid fa-location-dot"></i>
-                </span>
-                สถานที่ปฏิบัติงาน / พิกัด GPS
+          <!-- พิกัดสถานที่ (บังคับดึงอัตโนมัติ ไม่มีปุ่มกด) -->
+          <div class="bg-[#F4EFE6]/60 p-4 rounded-xl border border-[#DFD7C4] space-y-2.5">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-[#5C5549] flex items-center gap-1.5">
+                <i class="fa-solid fa-location-dot text-[#C84B31]"></i> สถานที่ / พิกัด GPS อัตโนมัติ <span class="text-[#C84B31]">*</span>
               </label>
-              <button type="button" onclick="getCurrentLocation()" id="gpsBtn" class="text-xs bg-white hover:bg-[#F2ECE1] text-[#2B2B2B] font-semibold px-3.5 py-2 rounded-lg border border-[#DCD3C0] shadow-sm transition flex items-center gap-1.5">
-                <i class="fa-solid fa-location-crosshairs text-[#C84B31]"></i> ดึงพิกัดปัจจุบัน
-              </button>
+              <span id="gpsStatusBadge" class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 flex items-center gap-1">
+                <i class="fa-solid fa-spinner fa-spin"></i> กำลังดึงพิกัดอัตโนมัติ...
+              </span>
             </div>
-            <input type="text" id="locationName" placeholder="พิมพ์ชื่อสถานที่ หรือกดปุ่มดึงพิกัดปัจจุบัน..." class="washi-input w-full rounded-xl px-4 py-2.5 text-sm">
-            <div id="gpsCoordsText" class="text-xs text-[#6E6A63] hidden pl-1"></div>
+            <input type="text" id="locationName" placeholder="ระบบจะดึงชื่อสถานที่ให้อัตโนมัติ หรือพิมพ์ระบุเพิ่มเติม..." class="zen-input w-full rounded-lg px-3.5 py-2 text-sm">
+            <div id="gpsCoordsText" class="text-[11px] text-[#7A7265]">ระบบจะบังคับดึงพิกัด GPS ล่าสุดทุกครั้งเมื่อกดส่งข้อมูล</div>
             <input type="hidden" id="lat">
             <input type="hidden" id="lng">
           </div>
 
           <!-- แนบไฟล์ / ถ่ายรูปพร้อมบีบอัด -->
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <label class="block text-xs font-bold text-[#5A554C]">
-                <i class="fa-solid fa-receipt text-[#C84B31] mr-1"></i> แนบหลักฐานสลิป / ใบเสร็จ
-              </label>
-              <span class="text-[11px] text-[#8C857B]">ย่อขนาดภาพอัตโนมัติ</span>
-            </div>
-            <div class="grid grid-cols-2 gap-3.5">
-              <button type="button" onclick="openCamera()" class="group flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl border border-dashed border-[#B8AE99] bg-white hover:border-[#C84B31] hover:bg-[#FFF9F7] text-[#3D3A35] font-semibold text-xs transition">
-                <span class="w-8 h-8 rounded-lg bg-[#C84B31]/10 text-[#C84B31] flex items-center justify-center group-hover:scale-105 transition">
-                  <i class="fa-solid fa-camera text-sm"></i>
-                </span>
-                <span>ถ่ายรูปใบเสร็จ</span>
+          <div class="space-y-2.5">
+            <label class="block text-xs font-bold text-[#5C5549]">
+              แนบสลิป / ใบเสร็จ (ย่อขนาดรูปอัตโนมัติ)
+            </label>
+            <div class="grid grid-cols-2 gap-3">
+              <button type="button" onclick="openCamera()" class="flex items-center justify-center gap-2 py-3 px-3 rounded-xl border border-dashed border-[#263547]/50 bg-[#263547]/5 hover:bg-[#263547]/10 text-[#263547] font-bold text-xs transition">
+                <i class="fa-solid fa-camera text-sm"></i> ถ่ายภาพใบเสร็จ
               </button>
-              <label class="group flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl border border-dashed border-[#B8AE99] bg-white hover:border-[#5F7A61] hover:bg-[#F7FAF7] text-[#3D3A35] font-semibold text-xs cursor-pointer transition">
-                <span class="w-8 h-8 rounded-lg bg-[#5F7A61]/15 text-[#5F7A61] flex items-center justify-center group-hover:scale-105 transition">
-                  <i class="fa-solid fa-images text-sm"></i>
-                </span>
-                <span>เลือกรูปจากอัลบั้ม</span>
+              <label class="flex items-center justify-center gap-2 py-3 px-3 rounded-xl border border-dashed border-[#9C9283] bg-[#FFFDF9] hover:bg-[#F4EFE6] text-[#5C5549] font-bold text-xs cursor-pointer transition">
+                <i class="fa-solid fa-folder-open text-sm text-[#7A7265]"></i> เลือกรูปในเครื่อง
                 <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
               </label>
             </div>
 
             <!-- กล้องถ่ายรูป -->
-            <div id="cameraBox" class="hidden bg-[#1E1E1E] rounded-xl overflow-hidden relative shadow-lg border border-[#DCD3C0]">
-              <video id="cameraVideo" autoplay playsinline class="w-full max-h-80 object-cover"></video>
-              <div class="p-3.5 bg-[#2B2B2B] flex items-center justify-between">
-                <button type="button" onclick="switchCamera()" class="text-[#F9F6F0] text-xs bg-white/10 hover:bg-white/20 px-3.5 py-2 rounded-lg transition">
-                  <i class="fa-solid fa-camera-rotate mr-1"></i> สลับกล้อง
+            <div id="cameraBox" class="hidden bg-[#1E1D1B] rounded-xl overflow-hidden border border-[#DFD7C4]">
+              <video id="cameraVideo" autoplay playsinline class="w-full max-h-72 object-cover"></video>
+              <div class="p-3 bg-[#2C2A29] flex items-center justify-between">
+                <button type="button" onclick="switchCamera()" class="text-[#F9F6F0] text-xs bg-white/10 px-3 py-1.5 rounded-lg">
+                  <i class="fa-solid fa-camera-rotate"></i> สลับกล้อง
                 </button>
-                <button type="button" onclick="capturePhoto()" class="bg-[#C84B31] hover:bg-[#B03E26] text-white font-bold text-xs px-5 py-2.5 rounded-full shadow flex items-center gap-1.5">
-                  <i class="fa-solid fa-circle text-white text-[10px]"></i> กดถ่ายภาพ
+                <button type="button" onclick="capturePhoto()" class="bg-[#C84B31] text-white font-bold text-xs px-5 py-2 rounded-full shadow">
+                  <i class="fa-solid fa-camera"></i> กดถ่ายภาพ
                 </button>
-                <button type="button" onclick="closeCamera()" class="text-[#C7BFA9] hover:text-white text-xs px-3 py-1.5">ยกเลิก</button>
+                <button type="button" onclick="closeCamera()" class="text-[#D0C9B8] text-xs px-2 py-1">ปิด</button>
               </div>
             </div>
 
             <!-- ตัวอย่างรูปที่บีบอัดแล้ว -->
-            <div id="previewBox" class="hidden flex items-center justify-between bg-[#5F7A61]/10 border border-[#5F7A61]/30 p-3 rounded-xl">
-              <div class="flex items-center gap-3.5">
-                <img id="previewImg" class="w-14 h-14 rounded-lg object-cover border border-[#5F7A61]/40 shadow-sm cursor-pointer hover:opacity-90 transition" onclick="viewFullImage(this.src)">
+            <div id="previewBox" class="hidden flex items-center justify-between bg-[#EFF5F0] border border-[#B8D0B9] p-3 rounded-xl">
+              <div class="flex items-center gap-3">
+                <img id="previewImg" class="w-12 h-12 rounded-lg object-cover border border-[#5F7A61]/40 cursor-pointer" onclick="viewFullImage(this.src)">
                 <div>
-                  <p class="text-xs font-bold text-[#2B2B2B]" id="previewName">สลิปใบเสร็จ.jpg</p>
-                  <p class="text-[11px] text-[#4E6650] font-medium mt-0.5" id="previewSize">ย่อขนาดเรียบร้อย</p>
+                  <p class="text-xs font-bold text-[#2F4231]" id="previewName">receipt.jpg</p>
+                  <p class="text-[11px] text-[#5F7A61]" id="previewSize">บีบอัดเรียบร้อย</p>
                 </div>
               </div>
-              <button type="button" onclick="clearImage()" class="w-8 h-8 rounded-lg bg-white text-[#C84B31] hover:bg-[#C84B31] hover:text-white border border-[#E5DEC9] flex items-center justify-center transition">
-                <i class="fa-solid fa-trash-can text-xs"></i>
+              <button type="button" onclick="clearImage()" class="text-[#C84B31] hover:bg-[#C84B31]/10 p-2 rounded-lg text-sm transition">
+                <i class="fa-solid fa-trash-can"></i>
               </button>
             </div>
           </div>
 
-          <!-- ปุ่ม Submit สไตล์ครามญี่ปุ่น (Ai-iro) -->
-          <button type="submit" id="submitBtn" class="btn-indigo-jp w-full font-semibold py-4 rounded-xl flex items-center justify-center gap-2.5 text-sm tracking-wide">
-            <i class="fa-solid fa-paper-plane text-[#E8C574] text-sm"></i>
-            <span>บันทึกข้อมูลเข้าสู่ระบบ</span>
+          <button type="submit" id="submitBtn" class="indigo-btn w-full font-bold py-3.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-sm tracking-wide">
+            <i class="fa-solid fa-paper-plane"></i> บันทึกข้อมูลลง Google Sheet
           </button>
         </div>
       </form>
@@ -297,64 +273,44 @@
 
     <!-- สรุปยอดและประวัติ (ขวา) -->
     <section class="lg:col-span-5 space-y-6">
-      <!-- การ์ดสรุปยอด -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- ยอดรายจ่าย (สีคราม Ai-iro) -->
-        <div class="relative overflow-hidden rounded-2xl bg-[#263547] p-5 text-[#F9F6F0] shadow-md border border-[#1B2634]">
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-[#C7BFA9] font-medium">รวมค่าใช้จ่ายสุทธิ</span>
-            <span class="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-[#E8C574] text-xs">
-              <i class="fa-solid fa-wallet"></i>
-            </span>
-          </div>
-          <p class="text-2xl font-bold mt-3 tracking-tight text-[#FFFDF9]" id="sumExpense">฿0.00</p>
-          <p class="text-[11px] text-[#9AA6B5] mt-1">คำนวณจากรายการทั้งหมด</p>
+      <!-- การ์ดสรุปยอดสไตล์ญี่ปุ่น -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="washi-card p-5 rounded-2xl border-l-4 border-l-[#263547]">
+          <p class="text-[11px] font-bold text-[#7A7265]">รวมรายจ่ายสุทธิ</p>
+          <p class="serif-title text-2xl font-bold text-[#263547] mt-1.5" id="sumExpense">฿0.00</p>
+          <p class="text-[11px] text-[#9C9283] mt-1">ยอดรวมค่าใช้จ่ายทั้งหมด</p>
         </div>
 
-        <!-- ยอดเงินสดรับ / คืนเงิน (สีเขียวมัทฉะ Matcha) -->
-        <div class="relative overflow-hidden rounded-2xl shoji-card p-5">
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-[#5A554C] font-bold">เก็บเงินสด / คืนเงิน</span>
-            <span class="w-7 h-7 rounded-lg bg-[#5F7A61]/15 flex items-center justify-center text-[#5F7A61] text-xs">
-              <i class="fa-solid fa-coins"></i>
-            </span>
-          </div>
-          <p class="text-2xl font-bold text-[#4E6650] mt-3 tracking-tight" id="sumCashIn">฿0.00</p>
-          <p class="text-[11px] text-[#8C857B] mt-1">ยอดเงินสดรับเข้าออฟฟิศ</p>
+        <div class="washi-card p-5 rounded-2xl border-l-4 border-l-[#5F7A61]">
+          <p class="text-[11px] font-bold text-[#7A7265]">รายรับ / เงินสด</p>
+          <p class="serif-title text-2xl font-bold text-[#5F7A61] mt-1.5" id="sumCashIn">฿0.00</p>
+          <p class="text-[11px] text-[#9C9283] mt-1">ยอดรวมเงินสดรับและคืนเงิน</p>
         </div>
       </div>
 
       <!-- รายการล่าสุด -->
-      <div class="shoji-card rounded-2xl overflow-hidden">
-        <div class="px-6 py-4 border-b border-[#E5DEC9] flex items-center justify-between bg-[#F2ECE1]/70">
-          <div class="flex items-center gap-2.5">
-            <span class="w-2 h-4 rounded-sm bg-[#C84B31]"></span>
-            <h3 class="font-bold text-sm text-[#2B2B2B]">ประวัติธุรกรรมล่าสุด</h3>
+      <div class="washi-card rounded-2xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-[#E5DEC9] bg-[#F5F0E6]/60 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-scroll text-[#C84B31] text-sm"></i>
+            <h3 class="serif-title font-bold text-sm text-[#2C2A29]">ประวัติการบันทึกล่าสุด</h3>
           </div>
-          <span class="text-xs bg-[#FFFDF9] text-[#3D3A35] px-3 py-1 rounded-full font-semibold border border-[#DCD3C0]" id="recordCount">0 รายการ</span>
+          <span class="text-xs bg-[#263547] text-[#F9F6F0] px-2.5 py-0.5 rounded-md font-semibold" id="recordCount">0 รายการ</span>
         </div>
-        <div id="historyList" class="divide-y divide-[#EDE6D6] max-h-[540px] overflow-y-auto">
-          <p class="text-center text-[#8C857B] text-sm py-12">ยังไม่มีรายการบันทึก</p>
+        <div id="historyList" class="divide-y divide-[#EDE6D6] max-h-[520px] overflow-y-auto">
+          <p class="text-center text-[#9C9283] text-sm py-12">ยังไม่มีรายการบันทึก</p>
         </div>
       </div>
     </section>
   </main>
 
   <!-- Modal ดูรูปขยาย -->
-  <div id="imgModal" onclick="this.classList.add('hidden')" class="fixed inset-0 bg-[#1E1E1E]/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <img id="modalImgSrc" class="max-w-full max-h-[90vh] rounded-xl shadow-2xl border border-[#E5DEC9]/30">
-  </div>
-
-  <!-- Toast แจ้งเตือน -->
-  <div id="toastBox" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
-    <div id="toastInner" class="bg-[#263547] text-[#F9F6F0] border border-[#E5DEC9]/30 px-5 py-3.5 rounded-xl shadow-xl flex items-center gap-3 text-xs sm:text-sm">
-      <i id="toastIcon" class="fa-solid fa-circle-check text-[#88B08B] text-base"></i>
-      <span id="toastMessage" class="font-medium">บันทึกสำเร็จ</span>
-    </div>
+  <div id="imgModal" onclick="this.classList.add('hidden')" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <img id="modalImgSrc" class="max-w-full max-h-[90vh] rounded-xl shadow-2xl border-2 border-[#E5DEC9]">
   </div>
 
   <script>
-    // ลิงก์ Web App URL ใหม่ล่าสุดของคุณ
+    // ลิงก์ Web App URL ของคุณ
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzS7z62Yt31PU_4cssZbTmMsEqXAP45c8XW5X8U2HBZvG4a10oKLKXOwjVbuM1shlxw/exec";
 
     let records = [];
@@ -374,24 +330,15 @@
       document.getElementById('date').value = today;
       renderHistory();
       fetchFromSheet();
+      // ดึงพิกัด GPS อัตโนมัติทันทีที่เปิดหน้าเว็บ
+      acquireMandatoryGPS(false);
     });
 
-    function showNotice(msg, isError) {
-      const box = document.getElementById('toastBox');
-      const icon = document.getElementById('toastIcon');
-      const text = document.getElementById('toastMessage');
-      text.textContent = msg;
-      icon.className = isError
-        ? 'fa-solid fa-triangle-exclamation text-[#E57373] text-base'
-        : 'fa-solid fa-circle-check text-[#88B08B] text-base';
-      box.classList.remove('translate-y-20', 'opacity-0');
-      setTimeout(function() {
-        box.classList.add('translate-y-20', 'opacity-0');
-      }, 3500);
-    }
-
     function selectCategory(catId) {
-      document.getElementById('category').value = catId;
+      const selectEl = document.getElementById('category');
+      if (selectEl.value !== catId) {
+        selectEl.value = catId;
+      }
       renderDynamicFields(catId);
     }
 
@@ -401,83 +348,79 @@
 
       if (catId === 'วิ่งงานรถ') {
         box.innerHTML = [
-          '<div class="flex items-center justify-between border-b border-[#E2D9C5] pb-2.5">',
-          '  <span class="text-xs font-bold text-[#263547] flex items-center gap-2">',
-          '    <i class="fa-solid fa-route text-[#C84B31]"></i> ส่วนที่ 2: รายละเอียดวิ่งงานรถ',
-          '  </span>',
-          '  <span class="text-[11px] text-[#7A746B] font-medium">หน่วย: บาท (THB)</span>',
+          '<div class="flex items-center justify-between border-b border-[#DFD7C4] pb-2">',
+          '  <span class="text-xs font-bold text-[#263547] flex items-center gap-1.5"><i class="fa-solid fa-car-side text-[#C84B31]"></i> รายละเอียดวิ่งงานรถ</span>',
+          '  <span class="text-[11px] text-[#7A7265]">หน่วย : บาท (฿)</span>',
           '</div>',
-          '<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">',
+          '<div class="grid grid-cols-2 gap-3.5">',
           '  <div>',
-          '    <label class="block text-xs font-semibold text-[#5A554C] mb-1.5">ค่าวิ่งงาน [฿] <span class="text-[#C84B31]">*</span></label>',
-          '    <input type="number" step="0.01" id="runFee" required placeholder="0.00" class="washi-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold">',
+          '    <label class="block text-xs font-semibold text-[#5C5549] mb-1">ค่าวิ่งงาน [฿] <span class="text-[#C84B31]">*</span></label>',
+          '    <input type="number" step="0.01" id="runFee" required placeholder="0.00" class="zen-input w-full rounded-lg px-3 py-2 text-sm">',
           '  </div>',
           '  <div>',
-          '    <label class="block text-xs font-semibold text-[#5A554C] mb-1.5">เก็บเงินสด [฿] <span class="text-[#C84B31]">*</span></label>',
-          '    <input type="number" step="0.01" id="cashCollected" required placeholder="0.00" class="washi-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold">',
+          '    <label class="block text-xs font-semibold text-[#5C5549] mb-1">เก็บเงินสด [฿] <span class="text-[#C84B31]">*</span></label>',
+          '    <input type="number" step="0.01" id="cashCollected" required placeholder="0.00" class="zen-input w-full rounded-lg px-3 py-2 text-sm">',
           '  </div>',
           '  <div>',
-          '    <label class="block text-xs font-semibold text-[#5A554C] mb-1.5">ค่าทางด่วน [฿]</label>',
-          '    <input type="number" step="0.01" id="tollFee" placeholder="0.00" class="washi-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold">',
+          '    <label class="block text-xs font-semibold text-[#5C5549] mb-1">ค่าทางด่วน [฿]</label>',
+          '    <input type="number" step="0.01" id="tollFee" placeholder="0.00" class="zen-input w-full rounded-lg px-3 py-2 text-sm">',
           '  </div>',
           '  <div>',
-          '    <label class="block text-xs font-semibold text-[#5A554C] mb-1.5">ค่าจอดรถ [฿]</label>',
-          '    <input type="number" step="0.01" id="parkingFee" placeholder="0.00" class="washi-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold">',
+          '    <label class="block text-xs font-semibold text-[#5C5549] mb-1">ค่าจอดรถ [฿]</label>',
+          '    <input type="number" step="0.01" id="parkingFee" placeholder="0.00" class="zen-input w-full rounded-lg px-3 py-2 text-sm">',
           '  </div>',
           '</div>',
-          '<div class="pt-3 border-t border-[#E2D9C5]">',
-          '  <label class="block text-xs font-semibold text-[#3D3A35] mb-2">🎐 ค่าตอบแทนพิเศษ / ทิป (Tips) <span class="text-[#C84B31]">*</span></label>',
+          '<div class="pt-3 border-t border-[#DFD7C4]">',
+          '  <label class="block text-xs font-semibold text-[#5C5549] mb-2">เงินพิเศษ / ทิป (Tips) <span class="text-[#C84B31]">*</span></label>',
           '  <div class="grid grid-cols-2 gap-3">',
-          '    <label class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-[#DCD3C0] bg-white hover:border-[#C84B31] text-xs font-semibold cursor-pointer transition">',
-          '      <input type="radio" name="hasTips" value="yes" onchange="toggleTipsInput(true)" class="accent-[#C84B31]" required> 👍 มีทิป',
+          '    <label class="flex items-center justify-center gap-2 p-2 rounded-lg border border-[#DCD3BC] bg-[#FFFDF9] cursor-pointer hover:border-[#263547] text-xs font-semibold">',
+          '      <input type="radio" name="hasTips" value="yes" onchange="toggleTipsInput(true)" required class="accent-[#263547]"> 👍 มีทิป',
           '    </label>',
-          '    <label class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-[#DCD3C0] bg-white hover:border-[#C84B31] text-xs font-semibold cursor-pointer transition">',
-          '      <input type="radio" name="hasTips" value="no" onchange="toggleTipsInput(false)" class="accent-[#C84B31]" checked> 👎 ไม่มีทิป',
+          '    <label class="flex items-center justify-center gap-2 p-2 rounded-lg border border-[#DCD3BC] bg-[#FFFDF9] cursor-pointer hover:border-[#263547] text-xs font-semibold">',
+          '      <input type="radio" name="hasTips" value="no" onchange="toggleTipsInput(false)" checked class="accent-[#263547]"> 👎 ไม่มีทิป',
           '    </label>',
           '  </div>',
-          '  <div id="tipsBox" class="hidden mt-3.5 fade-in">',
-          '    <label class="block text-xs font-semibold text-[#C84B31] mb-1.5">ระบุจำนวนเงิน Tips [฿] (Section 14) <span class="text-[#C84B31]">*</span></label>',
-          '    <input type="number" step="0.01" id="tipsAmount" placeholder="0.00" class="washi-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold">',
+          '  <div id="tipsBox" class="hidden mt-3">',
+          '    <label class="block text-xs font-semibold text-[#5C5549] mb-1">จำนวนเงินทิป [฿] <span class="text-[#C84B31]">*</span></label>',
+          '    <input type="number" step="0.01" id="tipsAmount" placeholder="0.00" class="zen-input w-full rounded-lg px-3 py-2 text-sm">',
           '  </div>',
           '</div>'
         ].join('');
       } else if (catId === 'เชื้อเพลิง') {
         box.innerHTML = [
-          '<div class="flex items-center justify-between border-b border-[#E2D9C5] pb-2.5">',
-          '  <span class="text-xs font-bold text-[#263547] flex items-center gap-2">',
-          '    <i class="fa-solid fa-gas-pump text-[#C84B31]"></i> ส่วนที่ 4: เลือกชนิดเชื้อเพลิง',
-          '  </span>',
+          '<div class="text-xs font-bold text-[#263547] border-b border-[#DFD7C4] pb-2 flex items-center gap-1.5">',
+          '  <i class="fa-solid fa-gas-pump text-[#C84B31]"></i> เลือกชนิดเชื้อเพลิง',
           '</div>',
-          '<div class="grid grid-cols-3 gap-3">',
-          '  <label class="border border-[#DCD3C0] rounded-xl p-3 text-center text-xs font-bold cursor-pointer bg-white hover:border-[#C84B31] transition">',
-          '    <input type="radio" name="fuelType" value="E20" checked onchange="updateFuelLabel(\'E20\')" class="accent-[#C84B31] mr-1.5"> E20',
+          '<div class="grid grid-cols-3 gap-2.5">',
+          '  <label class="border border-[#DCD3BC] rounded-lg p-2.5 text-center text-xs font-bold cursor-pointer bg-[#FFFDF9] hover:border-[#263547]">',
+          '    <input type="radio" name="fuelType" value="E20" checked onchange="updateFuelLabel(\'E20\')" class="mr-1 accent-[#263547]"> E20',
           '  </label>',
-          '  <label class="border border-[#DCD3C0] rounded-xl p-3 text-center text-xs font-bold cursor-pointer bg-white hover:border-[#C84B31] transition">',
-          '    <input type="radio" name="fuelType" value="LPG" onchange="updateFuelLabel(\'LPG\')" class="accent-[#C84B31] mr-1.5"> LPG',
+          '  <label class="border border-[#DCD3BC] rounded-lg p-2.5 text-center text-xs font-bold cursor-pointer bg-[#FFFDF9] hover:border-[#263547]">',
+          '    <input type="radio" name="fuelType" value="LPG" onchange="updateFuelLabel(\'LPG\')" class="mr-1 accent-[#263547]"> LPG',
           '  </label>',
-          '  <label class="border border-[#DCD3C0] rounded-xl p-3 text-center text-xs font-bold cursor-pointer bg-white hover:border-[#C84B31] transition">',
-          '    <input type="radio" name="fuelType" value="NGV" onchange="updateFuelLabel(\'NGV\')" class="accent-[#C84B31] mr-1.5"> NGV',
+          '  <label class="border border-[#DCD3BC] rounded-lg p-2.5 text-center text-xs font-bold cursor-pointer bg-[#FFFDF9] hover:border-[#263547]">',
+          '    <input type="radio" name="fuelType" value="NGV" onchange="updateFuelLabel(\'NGV\')" class="mr-1 accent-[#263547]"> NGV',
           '  </label>',
           '</div>',
           '<div>',
-          '  <label id="fuelAmountLabel" class="block text-xs font-semibold text-[#5A554C] mb-1.5">E20 [฿] <span class="text-[#C84B31]">*</span></label>',
-          '  <input type="number" step="0.01" id="singleAmount" required placeholder="0.00" class="washi-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold">',
+          '  <label id="fuelAmountLabel" class="block text-xs font-semibold text-[#5C5549] mb-1">ยอดเติม E20 [฿] <span class="text-[#C84B31]">*</span></label>',
+          '  <input type="number" step="0.01" id="singleAmount" required placeholder="0.00" class="zen-input w-full rounded-lg px-3 py-2 text-sm">',
           '</div>'
         ].join('');
       } else {
         const labelMap = {
           'เบิกเงิน': 'จำนวนเงินที่เบิก [฿]',
-          'ล้างรถ': 'ค่าบริการล้างรถ [฿]',
+          'ล้างรถ': 'ค่าล้างรถ [฿]',
           'ซ่อมรถ': 'ค่าซ่อมบำรุงรถ [฿]',
-          'คืนเงิน': 'จำนวนเงินที่ส่งคืน [฿]',
+          'คืนเงิน': 'จำนวนเงินที่คืน [฿]',
           'ฝากซื้อของ': 'ค่าซื้อของ [฿]',
-          'อื่นๆ': 'จำนวนเงินค่าใช้จ่ายอื่นๆ [฿]'
+          'อื่นๆ': 'จำนวนเงิน [฿]'
         };
         const title = labelMap[catId] || 'จำนวนเงิน [฿]';
         box.innerHTML = [
           '<div>',
-          '  <label class="block text-xs font-semibold text-[#5A554C] mb-1.5">' + title + ' <span class="text-[#C84B31]">*</span></label>',
-          '  <input type="number" step="0.01" id="singleAmount" required placeholder="0.00" class="washi-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold">',
+          '  <label class="block text-xs font-semibold text-[#5C5549] mb-1.5">' + title + ' <span class="text-[#C84B31]">*</span></label>',
+          '  <input type="number" step="0.01" id="singleAmount" required placeholder="0.00" class="zen-input w-full rounded-lg px-3.5 py-2.5 text-sm">',
           '</div>'
         ].join('');
       }
@@ -497,38 +440,64 @@
     }
 
     function updateFuelLabel(type) {
-      document.getElementById('fuelAmountLabel').innerHTML = type + ' [฿] <span class="text-[#C84B31]">*</span>';
+      document.getElementById('fuelAmountLabel').innerHTML = 'ยอดเติม ' + type + ' [฿] <span class="text-[#C84B31]">*</span>';
     }
 
-    function getCurrentLocation() {
-      const btn = document.getElementById('gpsBtn');
-      if (!navigator.geolocation) {
-        showNotice('เบราว์เซอร์ของคุณไม่รองรับการดึงพิกัด GPS', true);
-        return;
-      }
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[#C84B31]"></i> กำลังค้นหาพิกัด...';
-      navigator.geolocation.getCurrentPosition(async function(pos) {
-        const lat = pos.coords.latitude.toFixed(6);
-        const lng = pos.coords.longitude.toFixed(6);
-        document.getElementById('lat').value = lat;
-        document.getElementById('lng').value = lng;
+    // ฟังก์ชันบังคับดึงพิกัด GPS อัตโนมัติ (คืนค่าเป็น Promise)
+    function acquireMandatoryGPS(forceFresh) {
+      return new Promise(function(resolve, reject) {
+        const badge = document.getElementById('gpsStatusBadge');
         const coordsEl = document.getElementById('gpsCoordsText');
-        coordsEl.classList.remove('hidden');
-        coordsEl.innerHTML = 'พิกัด GPS: <a href="https://www.google.com/maps?q=' + lat + ',' + lng + '" target="_blank" class="text-[#C84B31] font-semibold underline">' + lat + ', ' + lng + '</a>';
 
-        try {
-          const res = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&accept-language=th');
-          const data = await res.json();
-          if (data && data.display_name && !document.getElementById('locationName').value) {
-            document.getElementById('locationName').value = data.display_name.split(',').slice(0, 3).join(', ');
+        if (!navigator.geolocation) {
+          if (badge) {
+            badge.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 flex items-center gap-1';
+            badge.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> อุปกรณ์ไม่รองรับ GPS';
           }
-        } catch (e) {}
-        btn.innerHTML = '<i class="fa-solid fa-check text-[#5F7A61]"></i> ดึงพิกัดสำเร็จ';
-        showNotice('ดึงพิกัดสถานที่ปัจจุบันสำเร็จ!', false);
-      }, function() {
-        showNotice('ไม่สามารถดึงพิกัดได้ กรุณาอนุญาตการเข้าถึงตำแหน่งที่ตั้ง', true);
-        btn.innerHTML = '<i class="fa-solid fa-location-crosshairs text-[#C84B31]"></i> ดึงพิกัดปัจจุบัน';
-      }, { enableHighAccuracy: true, timeout: 10000 });
+          reject(new Error('เบราว์เซอร์หรืออุปกรณ์ของคุณไม่รองรับการดึงพิกัด GPS'));
+          return;
+        }
+
+        if (badge) {
+          badge.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 flex items-center gap-1';
+          badge.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังดึงพิกัด GPS...';
+        }
+
+        navigator.geolocation.getCurrentPosition(async function(pos) {
+          const lat = pos.coords.latitude.toFixed(6);
+          const lng = pos.coords.longitude.toFixed(6);
+          document.getElementById('lat').value = lat;
+          document.getElementById('lng').value = lng;
+
+          if (badge) {
+            badge.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#EFF5F0] text-[#5F7A61] border border-[#B8D0B9] flex items-center gap-1';
+            badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> พิกัดพร้อมใช้งาน';
+          }
+
+          if (coordsEl) {
+            coordsEl.innerHTML = 'พิกัดปัจจุบัน: <a href="https://www.google.com/maps?q=' + lat + ',' + lng + '" target="_blank" class="text-[#263547] font-semibold underline">' + lat + ', ' + lng + '</a>';
+          }
+
+          const locInput = document.getElementById('locationName');
+          if (!locInput.value || forceFresh) {
+            try {
+              const res = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&accept-language=th');
+              const data = await res.json();
+              if (data && data.display_name && !locInput.value) {
+                locInput.value = data.display_name.split(',').slice(0, 3).join(', ');
+              }
+            } catch (e) {}
+          }
+
+          resolve({ lat: lat, lng: lng });
+        }, function(err) {
+          if (badge) {
+            badge.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 flex items-center gap-1';
+            badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> กรุณาเปิดสิทธิ์ GPS';
+          }
+          reject(err);
+        }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
+      });
     }
 
     async function openCamera() {
@@ -591,7 +560,7 @@
         const kb = Math.round((compressedBase64.length * 3 / 4) / 1024);
         document.getElementById('previewImg').src = compressedBase64;
         document.getElementById('previewName').textContent = compressedFileName;
-        document.getElementById('previewSize').textContent = 'ขนาดหลังบีบอัด: ~' + kb + ' KB';
+        document.getElementById('previewSize').textContent = 'ขนาดหลังย่อ: ~' + kb + ' KB';
         document.getElementById('previewBox').classList.remove('hidden');
       };
       img.src = dataUrl;
@@ -623,11 +592,24 @@
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-amber-400"></i> <span>กำลังซิงค์ข้อมูลเข้า Google Sheet...</span>';
+      btn.innerHTML = '<i class="fa-solid fa-location-crosshairs fa-spin"></i> กำลังดึงพิกัด GPS ล่าสุด...';
+
+      // บังคับดึงพิกัด GPS ทุกครั้งเมื่อกดส่งข้อมูล
+      let coords;
+      try {
+        coords = await acquireMandatoryGPS(true);
+      } catch (gpsErr) {
+        alert('⚠️ ระบบบังคับต้องระบุพิกัด GPS ก่อนบันทึกข้อมูล\nกรุณาเปิด Location (GPS) และกดอนุญาตสิทธิ์การเข้าถึงตำแหน่งที่ตั้งบนเบราว์เซอร์ของคุณครับ');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> บันทึกข้อมูลลง Google Sheet';
+        return;
+      }
+
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึกข้อมูลลง WepApp...';
 
       const cat = document.getElementById('category').value;
-      const lat = document.getElementById('lat').value;
-      const lng = document.getElementById('lng').value;
+      const lat = coords.lat;
+      const lng = coords.lng;
 
       const item = {
         id: 'EXP-' + Date.now(),
@@ -635,10 +617,10 @@
         date: document.getElementById('date').value,
         category: cat,
         details: document.getElementById('details').value,
-        locationName: document.getElementById('locationName').value || '',
+        locationName: document.getElementById('locationName').value || ('พิกัด ' + lat + ', ' + lng),
         lat: lat,
         lng: lng,
-        mapUrl: (lat && lng) ? ('https://www.google.com/maps?q=' + lat + ',' + lng) : '',
+        mapUrl: 'https://www.google.com/maps?q=' + lat + ',' + lng,
         runFee: 0, cashCollected: 0, tollFee: 0, parkingFee: 0, tips: 0,
         fuelType: '', fuelAmount: 0, amount: 0,
         netExpense: 0, cashIn: 0,
@@ -685,22 +667,23 @@
           renderHistory();
 
           document.getElementById('details').value = '';
+          document.getElementById('locationName').value = '';
           clearImage();
           selectCategory(cat);
-          btn.innerHTML = '<i class="fa-solid fa-circle-check text-[#88B08B]"></i> <span>บันทึกลงแท็บ WepApp สำเร็จ!</span>';
-          showNotice('บันทึกข้อมูลลงแท็บ WepApp สำเร็จ!', false);
+          acquireMandatoryGPS(false);
+          btn.innerHTML = '<i class="fa-solid fa-check"></i> บันทึกข้อมูลสำเร็จ!';
         } else {
-          showNotice('เกิดข้อผิดพลาด: ' + (result.message || 'ไม่ทราบสาเหตุ'), true);
-          btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-[#E57373]"></i> <span>ลองใหม่อีกครั้ง</span>';
+          alert('❌ เกิดข้อผิดพลาดจาก Google Sheet:\n' + (result.message || 'ไม่ทราบสาเหตุ'));
+          btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ลองใหม่อีกครั้ง';
         }
       } catch (err) {
         console.error('Error:', err);
-        showNotice('ไม่สามารถติดต่อ Google Sheet ได้ กรุณาตรวจสอบสิทธิ์ Anyone ใน Apps Script', true);
-        btn.innerHTML = '<i class="fa-solid fa-paper-plane text-[#E8C574]"></i> <span>บันทึกข้อมูลเข้าสู่ระบบ</span>';
+        alert('⚠️ ไม่สามารถติดต่อ Google Sheet ได้ กรุณาตรวจสอบการตั้งค่า Deploy');
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> บันทึกข้อมูลลง Google Sheet';
       } finally {
         btn.disabled = false;
         setTimeout(function() {
-          btn.innerHTML = '<i class="fa-solid fa-paper-plane text-[#E8C574] text-sm"></i> <span>บันทึกข้อมูลเข้าสู่ระบบ</span>';
+          btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> บันทึกข้อมูลลง Google Sheet';
         }, 2500);
       }
     }
@@ -715,7 +698,7 @@
           records = json.data;
           localStorage.setItem('office_expenses_v1', JSON.stringify(records));
           renderHistory();
-          document.getElementById('syncText').textContent = 'ซิงค์กับฐานข้อมูล WepApp ล่าสุดแล้ว';
+          document.getElementById('syncText').textContent = 'ซิงค์ข้อมูลกับแท็บ WepApp ล่าสุดแล้ว';
         }
       } catch (e) {
         console.log('ใช้ข้อมูล LocalStorage ล่าสุด');
@@ -737,33 +720,33 @@
       document.getElementById('sumCashIn').textContent = '฿' + totalCash.toLocaleString('th-TH', { minimumFractionDigits: 2 });
 
       if (records.length === 0) {
-        list.innerHTML = '<p class="text-center text-[#8C857B] text-sm py-12">ยังไม่มีรายการบันทึก</p>';
+        list.innerHTML = '<p class="text-center text-[#9C9283] text-sm py-12">ยังไม่มีรายการบันทึก</p>';
         return;
       }
 
       list.innerHTML = records.map(function(r, idx) {
-        const fuelBadge = r.fuelType ? (' • ' + r.fuelType) : '';
+        const fuelBadge = r.fuelType ? (' · ' + r.fuelType) : '';
         const locHtml = (r.locationName || r.mapUrl)
-          ? '<a href="' + (r.mapUrl || '#') + '" target="_blank" class="inline-flex items-center gap-1.5 text-[11px] text-[#5A554C] hover:text-[#C84B31] bg-[#F4EFE6] hover:bg-[#EAE2D3] px-2.5 py-1 rounded-md border border-[#DCD3C0] transition"><i class="fa-solid fa-location-dot text-[#C84B31]"></i> ' + (r.locationName || 'เปิดแผนที่ GPS') + '</a>'
+          ? '<a href="' + (r.mapUrl || '#') + '" target="_blank" class="inline-flex items-center gap-1 text-[11px] text-[#C84B31] bg-[#C84B31]/10 px-2 py-0.5 rounded border border-[#C84B31]/20"><i class="fa-solid fa-location-dot"></i> ' + (r.locationName || 'ดูแผนที่ GPS') + '</a>'
           : '';
         const expHtml = Number(r.netExpense) > 0
-          ? '<p class="text-sm font-bold text-[#C84B31]">-฿' + Number(r.netExpense).toLocaleString('th-TH', { minimumFractionDigits: 2 }) + '</p>'
+          ? '<p class="serif-title text-sm font-bold text-[#C84B31]">-฿' + Number(r.netExpense).toLocaleString() + '</p>'
           : '';
         const cashHtml = Number(r.cashIn) > 0
-          ? '<p class="text-xs font-bold text-[#4E6650]">+฿' + Number(r.cashIn).toLocaleString('th-TH', { minimumFractionDigits: 2 }) + '</p>'
+          ? '<p class="serif-title text-xs font-bold text-[#5F7A61]">+฿' + Number(r.cashIn).toLocaleString() + '</p>'
           : '';
         const slipHtml = (r.imageBase64 || r.fileUrl)
-          ? '<button type="button" onclick="openSlipByIndex(' + idx + ')" class="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-[#263547] hover:text-[#C84B31] bg-[#F2ECE1] px-2.5 py-0.5 rounded border border-[#DCD3C0] transition"><i class="fa-solid fa-receipt"></i> ดูใบเสร็จ</button>'
+          ? '<button type="button" onclick="openSlipByIndex(' + idx + ')" class="mt-1 inline-flex items-center gap-1 text-[11px] text-[#263547] font-semibold hover:underline"><i class="fa-solid fa-receipt"></i> ดูใบเสร็จ</button>'
           : '';
 
         return [
-          '<div class="p-4 sm:p-5 hover:bg-[#F9F6F0]/80 transition flex items-start justify-between gap-4">',
-          '  <div class="space-y-1.5">',
-          '    <div class="flex items-center gap-2.5">',
-          '      <span class="text-[11px] font-bold px-2.5 py-0.5 rounded bg-[#263547] text-[#F9F6F0] tracking-wide">' + r.category + fuelBadge + '</span>',
-          '      <span class="text-xs text-[#8C857B] font-medium">' + (r.date || '') + '</span>',
+          '<div class="p-4 hover:bg-[#F5F0E6]/50 transition flex items-start justify-between gap-3">',
+          '  <div class="space-y-1">',
+          '    <div class="flex items-center gap-2">',
+          '      <span class="text-xs font-bold px-2.5 py-0.5 rounded bg-[#263547]/10 text-[#263547]">' + r.category + fuelBadge + '</span>',
+          '      <span class="text-xs text-[#9C9283]">' + (r.date || '') + '</span>',
           '    </div>',
-          '    <p class="text-sm font-medium text-[#2B2B2B] leading-relaxed">' + (r.details || '-') + '</p>',
+          '    <p class="text-sm font-medium text-[#2C2A29]">' + (r.details || '-') + '</p>',
           '    ' + locHtml,
           '  </div>',
           '  <div class="text-right shrink-0">',
@@ -777,10 +760,7 @@
     }
 
     function exportCSV() {
-      if (records.length === 0) {
-        showNotice('ยังไม่มีข้อมูลสำหรับส่งออก', true);
-        return;
-      }
+      if (records.length === 0) return alert('ยังไม่มีข้อมูลสำหรับส่งออก');
       const headers = ['วันที่', 'ประเภท', 'รายละเอียด', 'สถานที่', 'พิกัดแผนที่', 'รายจ่ายสุทธิ', 'รายรับ/เงินสด'];
       const rows = records.map(function(r) {
         return [
