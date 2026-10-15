@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ระบบบันทึกค่าใช้จ่ายออฟฟิศ (Web App)</title>
 
-  <!-- ตั้งค่าให้ทำงานเป็น Web App เต็มจอ (PWA) ทั้ง iOS และ Android -->
   <meta name="theme-color" content="#263547">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,6 +18,7 @@
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
   <style>
     :root {
       --washi-bg: #F9F6F0;
@@ -26,7 +26,7 @@
       --hinoki-border: #E5DEC9;
       --akane-red: #C84B31;
       --matcha-green: #5F7A61;
-      --ai-indigo: #2C3E50;
+      --ai-indigo: #263547;
     }
     body {
       font-family: 'Noto Sans Thai', sans-serif;
@@ -41,7 +41,6 @@
     .fade-in { animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
     
-    /* Washi Paper & Shoji Screen Card Styling */
     .shoji-card {
       background: rgba(255, 253, 249, 0.94);
       backdrop-filter: blur(8px);
@@ -75,23 +74,18 @@
       transform: translateY(-1px);
       box-shadow: 0 10px 20px -4px rgba(38, 53, 71, 0.35);
     }
-    /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: #F2ECE1; }
     ::-webkit-scrollbar-thumb { background: #C7BFA9; border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: #A89F88; }
   </style>
 </head>
 <body class="min-h-screen pb-16 antialiased selection:bg-[#C84B31] selection:text-white">
 
-  <!-- Top Accent Line (Akane Red & Matcha) -->
   <div class="h-1.5 w-full bg-gradient-to-r from-[#263547] via-[#C84B31] to-[#5F7A61]"></div>
 
-  <!-- Header -->
   <header class="bg-[#FFFDF9]/90 backdrop-blur-md sticky top-0 z-30 border-b border-[#E5DEC9]">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-4">
-        <!-- Minimal Seal Icon (Thai) -->
         <div class="w-12 h-12 rounded-xl bg-[#C84B31] text-[#FFFDF9] flex flex-col items-center justify-center shadow-sm border border-[#A63A22] shrink-0">
           <i class="fa-solid fa-file-invoice-dollar text-lg"></i>
         </div>
@@ -125,11 +119,8 @@
   </header>
 
   <main class="max-w-6xl mx-auto px-4 sm:px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-    
-    <!-- ฟอร์มบันทึกข้อมูล (ซ้าย) -->
     <section class="lg:col-span-7">
       <form id="expenseForm" onsubmit="handleSubmit(event)" class="shoji-card rounded-2xl overflow-hidden">
-        <!-- หัวการ์ดสไตล์ป้ายไม้ฮิโนกิ -->
         <div class="bg-[#F2ECE1] px-6 sm:px-8 py-4 border-b border-[#E2D9C5] flex items-center justify-between">
           <div class="flex items-center gap-3">
             <span class="w-8 h-8 rounded-lg bg-[#263547] text-[#F9F6F0] flex items-center justify-center text-xs font-bold">
@@ -144,9 +135,7 @@
         </div>
 
         <div class="p-6 sm:p-8 space-y-6">
-          <!-- วันที่ & ประเภท -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <!-- วันที่ -->
             <div>
               <label class="block text-xs font-bold text-[#5A554C] mb-2">
                 <i class="fa-regular fa-calendar text-[#C84B31] mr-1"></i> วันที่ทำรายการ <span class="text-[#C84B31]">*</span>
@@ -154,7 +143,6 @@
               <input type="date" id="date" required class="washi-input w-full rounded-xl px-4 py-3 text-sm font-medium">
             </div>
 
-            <!-- ประเภท (แบบ Drop List) -->
             <div>
               <label for="category" class="block text-xs font-bold text-[#5A554C] mb-2">
                 <i class="fa-solid fa-tag text-[#C84B31] mr-1"></i> หมวดหมู่รายการ <span class="text-[#C84B31]">*</span>
@@ -177,9 +165,7 @@
             </div>
           </div>
 
-          <!-- พื้นที่ Dynamic ตามประเภทที่เลือก (Section 2 - 14) -->
           <div id="dynamicSection" class="fade-in bg-[#F6F2E9] p-5 sm:p-6 rounded-xl border border-[#E2D9C5] space-y-4">
-            <!-- ค่าเริ่มต้น: วิ่งงานรถ -->
             <div class="flex items-center justify-between border-b border-[#E2D9C5] pb-2.5">
               <span class="text-xs font-bold text-[#263547] flex items-center gap-2">
                 <i class="fa-solid fa-route text-[#C84B31]"></i> ส่วนที่ 2: รายละเอียดวิ่งงานรถ
@@ -215,13 +201,12 @@
                 </label>
               </div>
               <div id="tipsBox" class="hidden mt-3.5 fade-in">
-                <label class="block text-xs font-semibold text-[#C84B31] mb-1.5">ระบุจำนวนเงิน Tips [฿] (Section 14) <span class="text-[#C84B31]">*</span></label>
+                <label class="block text-xs font-semibold text-[#C84B31] mb-1.5">ระบุจำนวนเงิน Tips [฿] <span class="text-[#C84B31]">*</span></label>
                 <input type="number" step="0.01" id="tipsAmount" placeholder="0.00" class="washi-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold">
               </div>
             </div>
           </div>
 
-          <!-- รายละเอียด -->
           <div>
             <label class="block text-xs font-bold text-[#5A554C] mb-2">
               <i class="fa-regular fa-pen-to-square text-[#C84B31] mr-1"></i> รายละเอียดเพิ่มเติม <span class="text-[#C84B31]">*</span>
@@ -229,29 +214,24 @@
             <textarea id="details" rows="2" required placeholder="ระบุรายละเอียดงาน / ชื่อลูกค้า / จุดหมายปลายทาง หรือรายการสิ่งของ..." class="washi-input w-full rounded-xl px-4 py-3 text-sm"></textarea>
           </div>
 
-          <!-- ปุ่มคู่ แนบใบเสร็จ & SAVE GPS สไตล์มินิมอลตามแบบ -->
           <div class="space-y-3 pt-1">
             <div class="grid grid-cols-2 gap-3.5">
-              <!-- ปุ่มซ้าย: แนบใบเสร็จ (เส้นประ) -->
               <button type="button" onclick="toggleReceiptDrawer()" class="flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-2xl border-2 border-dashed border-[#C7BFA9] bg-[#FFFDF9] hover:border-[#C84B31] hover:bg-[#FFF9F7] text-[#263547] font-bold text-xs sm:text-sm transition shadow-sm">
                 <i class="fa-solid fa-camera text-[#C84B31] text-base"></i>
                 <span>แนบใบเสร็จ</span>
               </button>
 
-              <!-- ปุ่มขวา: SAVE GPS (กล่องเช็คบ็อกซ์พร้อมติ๊กถูก) -->
-              <label for="saveGpsToggle" class="flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-2xl border border-[#E2D9C5] bg-[#FFFDF9] hover:border-[#263547] text-[#2B2B2B] font-bold text-xs sm:text-sm cursor-pointer transition shadow-sm select-none">
-                <input type="checkbox" id="saveGpsToggle" checked onchange="handleGpsToggle(this.checked)" class="w-4 h-4 rounded accent-[#263547] cursor-pointer">
+              <div class="flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-2xl border border-[#E2D9C5] bg-[#FFFDF9] text-[#2B2B2B] font-bold text-xs sm:text-sm shadow-sm select-none">
+                <input type="checkbox" id="saveGpsToggle" checked disabled class="w-4 h-4 rounded accent-[#263547]">
                 <span class="tracking-wide">SAVE GPS</span>
                 <span id="gpsMiniDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse" title="สถานะพิกัด GPS"></span>
-              </label>
+              </div>
             </div>
 
-            <!-- ข้อมูลพิกัดที่ซ่อนอยู่เบื้องหลัง -->
             <input type="hidden" id="locationName">
             <input type="hidden" id="lat">
             <input type="hidden" id="lng">
 
-            <!-- ถาดตัวเลือกเมื่อกดปุ่ม "แนบใบเสร็จ" -->
             <div id="receiptChoiceDrawer" class="hidden fade-in grid grid-cols-2 gap-3 bg-[#F6F2E9] p-3 rounded-xl border border-[#E2D9C5]">
               <button type="button" onclick="openCamera()" class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-white hover:bg-[#FFF9F7] border border-[#DCD3C0] text-[#2B2B2B] font-semibold text-xs transition">
                 <i class="fa-solid fa-camera text-[#C84B31]"></i> ถ่ายรูปด้วยกล้อง
@@ -262,7 +242,6 @@
               </label>
             </div>
 
-            <!-- กล้องถ่ายรูป -->
             <div id="cameraBox" class="hidden bg-[#1E1E1E] rounded-xl overflow-hidden relative shadow-lg border border-[#DCD3C0]">
               <video id="cameraVideo" autoplay playsinline class="w-full max-h-80 object-cover"></video>
               <div class="p-3.5 bg-[#2B2B2B] flex items-center justify-between">
@@ -276,30 +255,31 @@
               </div>
             </div>
 
-            <!-- ตัวอย่างรูปที่บีบอัดแล้ว -->
-            <div id="previewBox" class="hidden flex items-center justify-between bg-[#5F7A61]/10 border border-[#5F7A61]/30 p-3 rounded-xl">
-              <div class="flex items-center gap-3.5">
-                <img id="previewImg" class="w-14 h-14 rounded-lg object-cover border border-[#5F7A61]/40 shadow-sm cursor-pointer hover:opacity-90 transition" onclick="viewFullImage(this.src)">
-                <div>
-                  <p class="text-xs font-bold text-[#2B2B2B]" id="previewName">สลิปใบเสร็จ.jpg</p>
-                  <p class="text-[11px] text-[#4E6650] font-medium mt-0.5" id="previewSize">ย่อขนาดเรียบร้อย</p>
-                  <p class="text-[11px] text-[#C84B31] font-semibold mt-0.5 hidden items-center gap-1.5" id="ocrStatusText">
-                    <i class="fa-solid fa-wand-magic-sparkles fa-spin"></i> <span>กำลังสแกนอ่านยอดเงินจากใบเสร็จ...</span>
-                  </p>
+            <div id="previewBox" class="hidden flex flex-col gap-2 bg-[#5F7A61]/10 border border-[#5F7A61]/30 p-3 rounded-xl">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3.5">
+                  <img id="previewImg" class="w-14 h-14 rounded-lg object-cover border border-[#5F7A61]/40 shadow-sm cursor-pointer hover:opacity-90 transition" onclick="viewFullImage(this.src)">
+                  <div>
+                    <p class="text-xs font-bold text-[#2B2B2B]" id="previewName">สลิปใบเสร็จ.jpg</p>
+                    <p class="text-[11px] text-[#4E6650] font-medium mt-0.5" id="previewSize">ย่อขนาดเรียบร้อย</p>
+                    <p class="text-[11px] text-[#C84B31] font-semibold mt-0.5 hidden items-center gap-1.5" id="ocrStatusText">
+                      <i class="fa-solid fa-wand-magic-sparkles fa-spin"></i> <span>กำลังสแกนอ่านยอดเงินจากใบเสร็จ...</span>
+                    </p>
+                    <div id="ocrCandidatesBox" class="hidden flex-wrap items-center gap-1.5 mt-1.5"></div>
+                  </div>
                 </div>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <button type="button" onclick="scanReceiptPrice()" title="สแกนอ่านราคาอีกครั้ง" class="w-8 h-8 rounded-lg bg-white text-[#263547] hover:bg-[#263547] hover:text-white border border-[#E5DEC9] flex items-center justify-center transition">
-                  <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
-                </button>
-                <button type="button" onclick="clearImage()" class="w-8 h-8 rounded-lg bg-white text-[#C84B31] hover:bg-[#C84B31] hover:text-white border border-[#E5DEC9] flex items-center justify-center transition">
-                  <i class="fa-solid fa-trash-can text-xs"></i>
-                </button>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="scanReceiptPrice()" title="สแกนอ่านราคาอีกครั้ง" class="w-8 h-8 rounded-lg bg-white text-[#263547] hover:bg-[#263547] hover:text-white border border-[#E5DEC9] flex items-center justify-center transition">
+                    <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+                  </button>
+                  <button type="button" onclick="clearImage()" class="w-8 h-8 rounded-lg bg-white text-[#C84B31] hover:bg-[#C84B31] hover:text-white border border-[#E5DEC9] flex items-center justify-center transition">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- ปุ่ม Submit สไตล์ครามญี่ปุ่น (Ai-iro) -->
           <button type="submit" id="submitBtn" class="btn-indigo-jp w-full font-semibold py-4 rounded-xl flex items-center justify-center gap-2.5 text-sm tracking-wide">
             <span>บันทึกข้อมูลเข้าสู่ระบบ</span>
             <i class="fa-solid fa-paper-plane text-[#E8C574] text-sm"></i>
@@ -308,11 +288,8 @@
       </form>
     </section>
 
-    <!-- สรุปยอดและประวัติ (ขวา) -->
     <section class="lg:col-span-5 space-y-6">
-      <!-- การ์ดสรุปยอด -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- ยอดรายจ่าย (สีคราม Ai-iro) -->
         <div class="relative overflow-hidden rounded-2xl bg-[#263547] p-5 text-[#F9F6F0] shadow-md border border-[#1B2634]">
           <div class="flex items-center justify-between">
             <span class="text-xs text-[#C7BFA9] font-medium">รวมค่าใช้จ่ายสุทธิ</span>
@@ -324,7 +301,6 @@
           <p class="text-[11px] text-[#9AA6B5] mt-1">คำนวณจากรายการทั้งหมด</p>
         </div>
 
-        <!-- ยอดเงินสดรับ / คืนเงิน (สีเขียวมัทฉะ Matcha) -->
         <div class="relative overflow-hidden rounded-2xl shoji-card p-5">
           <div class="flex items-center justify-between">
             <span class="text-xs text-[#5A554C] font-bold">เก็บเงินสด / คืนเงิน</span>
@@ -337,7 +313,6 @@
         </div>
       </div>
 
-      <!-- รายการล่าสุด -->
       <div class="shoji-card rounded-2xl overflow-hidden">
         <div class="px-6 py-4 border-b border-[#E5DEC9] flex items-center justify-between bg-[#F2ECE1]/70">
           <div class="flex items-center gap-2.5">
@@ -353,12 +328,10 @@
     </section>
   </main>
 
-  <!-- Modal ดูรูปขยาย -->
   <div id="imgModal" onclick="this.classList.add('hidden')" class="fixed inset-0 bg-[#1E1E1E]/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <img id="modalImgSrc" class="max-w-full max-h-[90vh] rounded-xl shadow-2xl border border-[#E5DEC9]/30">
   </div>
 
-  <!-- Modal แนะนำวิธีติดตั้ง Web App ลงบนหน้าจอมือถือ/คอมพิวเตอร์ -->
   <div id="installModal" class="fixed inset-0 bg-[#1E1E1E]/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="shoji-card max-w-md w-full rounded-2xl overflow-hidden shadow-2xl border border-[#E5DEC9] fade-in">
       <div class="bg-[#263547] text-[#F9F6F0] px-6 py-4 flex items-center justify-between">
@@ -401,7 +374,6 @@
     </div>
   </div>
 
-  <!-- Toast แจ้งเตือน -->
   <div id="toastBox" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
     <div id="toastInner" class="bg-[#263547] text-[#F9F6F0] border border-[#E5DEC9]/30 px-5 py-3.5 rounded-xl shadow-xl flex items-center gap-3 text-xs sm:text-sm">
       <i id="toastIcon" class="fa-solid fa-circle-check text-[#88B08B] text-base"></i>
@@ -410,7 +382,6 @@
   </div>
 
   <script>
-    // ลิงก์ Web App URL ใหม่ล่าสุดของคุณ
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzS7z62Yt31PU_4cssZbTmMsEqXAP45c8XW5X8U2HBZvG4a10oKLKXOwjVbuM1shlxw/exec";
 
     let records = [];
@@ -422,6 +393,10 @@
 
     let compressedBase64 = '';
     let highResOcrDataUrl = '';
+    let croppedTableOcrDataUrl = '';
+    let zoneProductDataUrl = '';
+    let zoneAmountDataUrl = '';
+    let zoneNoteDataUrl = '';
     let compressedFileName = '';
     let cameraStream = null;
     let facingMode = 'environment';
@@ -436,7 +411,6 @@
       acquireMandatoryGPS(false);
     });
 
-    // ดักจับ Event ติดตั้งแอปของ Chrome/Android/Desktop
     window.addEventListener('beforeinstallprompt', function(e) {
       e.preventDefault();
       deferredInstallPrompt = e;
@@ -444,7 +418,6 @@
 
     function initWebAppManifest() {
       try {
-        // วาดไอคอนแอป 512x512 อัตโนมัติด้วย Canvas
         const canvas = document.createElement('canvas');
         canvas.width = 512;
         canvas.height = 512;
@@ -559,7 +532,7 @@
           '    </label>',
           '  </div>',
           '  <div id="tipsBox" class="hidden mt-3.5 fade-in">',
-          '    <label class="block text-xs font-semibold text-[#C84B31] mb-1.5">ระบุจำนวนเงิน Tips [฿] (Section 14) <span class="text-[#C84B31]">*</span></label>',
+          '    <label class="block text-xs font-semibold text-[#C84B31] mb-1.5">ระบุจำนวนเงิน Tips [฿] <span class="text-[#C84B31]">*</span></label>',
           '    <input type="number" step="0.01" id="tipsAmount" placeholder="0.00" class="washi-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold">',
           '  </div>',
           '</div>'
@@ -626,18 +599,6 @@
     function toggleReceiptDrawer() {
       const drawer = document.getElementById('receiptChoiceDrawer');
       if (drawer) drawer.classList.toggle('hidden');
-    }
-
-    function handleGpsToggle(checked) {
-      const dot = document.getElementById('gpsMiniDot');
-      if (checked) {
-        acquireMandatoryGPS(true).catch(function() {});
-      } else {
-        document.getElementById('lat').value = '';
-        document.getElementById('lng').value = '';
-        document.getElementById('locationName').value = '';
-        if (dot) dot.className = 'w-2 h-2 rounded-full bg-gray-300';
-      }
     }
 
     function acquireMandatoryGPS(forceFresh) {
@@ -724,22 +685,38 @@
       reader.readAsDataURL(file);
     }
 
+    function cropRegionZoom(img, rx, ry, rw, rh, scale) {
+      const sx = Math.round(img.width * rx);
+      const sy = Math.round(img.height * ry);
+      const sw = Math.round(img.width * rw);
+      const sh = Math.round(img.height * rh);
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(sw * scale));
+      c.height = Math.max(1, Math.round(sh * scale));
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+      return c.toDataURL('image/png');
+    }
+
     function compressImageFromSource(dataUrl, fileName) {
       const img = new Image();
       img.onload = function() {
-        // 1. สร้างภาพความละเอียดสูงและเร่งความคมชัด (High-Contrast) สำหรับสแกน OCR โดยเฉพาะ
-        const OCR_MAX = 2200;
-        let ow = img.width, oh = img.height;
-        if (ow > oh && ow > OCR_MAX) { oh = Math.round(oh * (OCR_MAX / ow)); ow = OCR_MAX; }
-        else if (oh > ow && oh > OCR_MAX) { ow = Math.round(ow * (OCR_MAX / oh)); oh = OCR_MAX; }
+        // โซนที่ 1: รายการสินค้า (PT MAX LPG) -> แนวนอน 10%-48%, แนวตั้ง 49%-60% ขยาย 3 เท่า
+        zoneProductDataUrl = cropRegionZoom(img, 0.10, 0.49, 0.38, 0.11, 3.0);
 
-        const ocrCanvas = document.createElement('canvas');
-        ocrCanvas.width = ow; ocrCanvas.height = oh;
-        const ocrCtx = ocrCanvas.getContext('2d');
-        ocrCtx.drawImage(img, 0, 0, ow, oh);
-        highResOcrDataUrl = ocrCanvas.toDataURL('image/png');
+        // โซนที่ 2: ช่องจำนวนเงิน & มูลค่ารวมภาษี (391.40) -> แนวนอน 83%-98.2% (หลบเส้นกรอบขวาสุด), แนวตั้ง 49%-90% ขยาย 3.5 เท่า
+        zoneAmountDataUrl = cropRegionZoom(img, 0.83, 0.49, 0.152, 0.41, 3.5);
 
-        // 2. สร้างภาพบีบอัดขนาดเล็กสำหรับอัปโหลดขึ้น Google Drive ให้รวดเร็ว
+        // โซนที่ 3: หมายเหตุ 2 (ทะเบียนรถ ฌถ6490 กรุงเทพมหานคร) -> แนวนอน 1%-62%, แนวตั้ง 88%-96% ขยาย 3 เท่า
+        zoneNoteDataUrl = cropRegionZoom(img, 0.01, 0.88, 0.61, 0.08, 3.0);
+
+        // โซนสำรอง: ครึ่งล่างของใบเสร็จ (เผื่อใบเสร็จรูปแบบอื่น)
+        croppedTableOcrDataUrl = cropRegionZoom(img, 0.02, 0.46, 0.96, 0.50, 2.0);
+
         const MAX_SIDE = 1200;
         let w = img.width, h = img.height;
         if (w > h && w > MAX_SIDE) { h = Math.round(h * (MAX_SIDE / w)); w = MAX_SIDE; }
@@ -758,267 +735,238 @@
         document.getElementById('previewSize').textContent = 'ขนาดหลังบีบอัด: ~' + kb + ' KB';
         document.getElementById('previewBox').classList.remove('hidden');
 
-        // สแกนอ่านราคาและชนิดเชื้อเพลิงจากรูปใบเสร็จอัตโนมัติทันที
         scanReceiptPrice();
       };
       img.src = dataUrl;
     }
 
+    function applyDetectedAmount(val) {
+      const priceVal = Number(val).toFixed(2);
+      const singleAmountInput = document.getElementById('singleAmount');
+      const runFeeInput = document.getElementById('runFee');
+      if (singleAmountInput) {
+        singleAmountInput.value = priceVal;
+      } else if (runFeeInput) {
+        runFeeInput.value = priceVal;
+      }
+      const ocrStatus = document.getElementById('ocrStatusText');
+      if (ocrStatus) {
+        ocrStatus.innerHTML = '<i class="fa-solid fa-circle-check text-[#5F7A61]"></i> <span class="text-[#4E6650]">ดึงข้อมูลสำเร็จ: ฿' + Number(priceVal).toLocaleString('th-TH', { minimumFractionDigits: 2 }) + '</span>';
+      }
+      showNotice('ใส่ยอดเงิน ฿' + Number(priceVal).toLocaleString('th-TH', { minimumFractionDigits: 2 }) + ' เรียบร้อย', false);
+    }
+
     async function scanReceiptPrice() {
       if (!compressedBase64) return;
       const ocrStatus = document.getElementById('ocrStatusText');
+      const candidatesBox = document.getElementById('ocrCandidatesBox');
+      if (candidatesBox) {
+        candidatesBox.classList.add('hidden');
+        candidatesBox.innerHTML = '';
+      }
       if (ocrStatus) {
         ocrStatus.classList.remove('hidden');
         ocrStatus.classList.add('flex');
-        ocrStatus.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles fa-spin"></i> <span>กำลังสแกนอ่านยอดเงินจากใบเสร็จ...</span>';
+        ocrStatus.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles fa-spin"></i> <span>กำลังสแกน 3 จุด (สินค้า / ยอดรวม / ทะเบียนรถ)...</span>';
       }
 
-      const rawBase64 = compressedBase64.split(',')[1];
-      let extracted = null;
-
-      // 1. ลองอ่านด้วย Gemini Vision API ก่อน (กรณีมี API Key)
       try {
-        const apiKey = "";
-        if (apiKey) {
-          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-          const prompt = "อ่านใบเสร็จน้ำมันหรือใบกำกับภาษีนี้ แล้วดึงข้อมูลเป็น JSON: totalAmount (ตัวเลขยอดเงินรวมสุทธิ/มูลค่ารวมภาษี), fuelType ('E20', 'LPG', 'NGV' หรือ '' ถ้าไม่พบ), stationOrNote (ชื่อปั๊มน้ำมัน/สาขา/ทะเบียนรถ ถ้ามี)";
-          const payload = {
-            contents: [{
-              role: "user",
-              parts: [
-                { text: prompt },
-                { inlineData: { mimeType: "image/jpeg", data: rawBase64 } }
-              ]
-            }],
-            generationConfig: {
-              responseMimeType: "application/json",
-              responseSchema: {
-                type: "OBJECT",
-                properties: {
-                  totalAmount: { type: "NUMBER" },
-                  fuelType: { type: "STRING" },
-                  stationOrNote: { type: "STRING" }
-                }
-              }
-            }
-          };
+        if (!window.Tesseract) throw new Error('Tesseract not loaded');
 
-          const res = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          if (res.ok) {
-            const result = await res.json();
-            const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (jsonText) {
-              extracted = JSON.parse(jsonText);
+        // 1. สแกนจุดที่ 1 (รายการสินค้า: PT MAX LPG) + จุดที่ 2 (คอลัมน์จำนวนเงิน & มูลค่ารวมภาษี: 391.40) ด้วยโหมดภาษาอังกฤษล้วน (เร็วและแม่นยำสำหรับตัวเลขและคำว่า LPG/E20)
+        const [prodRes, amtRes, noteRes] = await Promise.all([
+          zoneProductDataUrl ? Tesseract.recognize(zoneProductDataUrl, 'eng') : Promise.resolve(null),
+          zoneAmountDataUrl ? Tesseract.recognize(zoneAmountDataUrl, 'eng') : Promise.resolve(null),
+          zoneNoteDataUrl ? Tesseract.recognize(zoneNoteDataUrl, 'tha+eng') : Promise.resolve(null)
+        ]);
+
+        const prodText = (prodRes && prodRes.data && prodRes.data.text) ? prodRes.data.text : '';
+        let amtText = (amtRes && amtRes.data && amtRes.data.text) ? amtRes.data.text : '';
+        const noteText = (noteRes && noteRes.data && noteRes.data.text) ? noteRes.data.text : '';
+
+        // หากรอบแรกยังไม่พบตัวเลขในคอลัมน์ขวา ให้สแกนตารางครึ่งล่างซ้ำ
+        let parsed = parseTargetedReceiptZones(prodText, amtText, noteText);
+        if ((!parsed || !parsed.totalAmount) && croppedTableOcrDataUrl) {
+          const fallbackRes = await Tesseract.recognize(croppedTableOcrDataUrl, 'eng+tha');
+          const fbText = (fallbackRes && fallbackRes.data && fallbackRes.data.text) ? fallbackRes.data.text : '';
+          parsed = parseTargetedReceiptZones(prodText + '\n' + fbText, amtText + '\n' + fbText, noteText + '\n' + fbText);
+        }
+
+        if (parsed) {
+          // 1. ตั้งค่าหมวดหมู่เป็น "เชื้อเพลิง" และติ๊กเลือกชนิดเชื้อเพลิง (เช่น LPG)
+          if (parsed.fuelType) {
+            selectCategory('เชื้อเพลิง');
+            document.getElementById('category').value = 'เชื้อเพลิง';
+            const radio = document.querySelector('input[name="fuelType"][value="' + parsed.fuelType + '"]');
+            if (radio) {
+              radio.checked = true;
+              updateFuelLabel(parsed.fuelType);
             }
           }
-        }
-      } catch (err) {}
 
-      // 2. ใช้ Tesseract.js สแกนจากภาพความละเอียดสูง (highResOcrDataUrl) บนเบราว์เซอร์
-      if (!extracted || !extracted.totalAmount) {
-        try {
-          if (window.Tesseract) {
-            const targetImg = highResOcrDataUrl || compressedBase64;
-            const { data: { text } } = await Tesseract.recognize(targetImg, 'eng+tha');
-            extracted = parseReceiptTextFallback(text);
+          // 2. ใส่รายละเอียด (เช่น PT MAX LPG - ฌถ6490 กรุงเทพมหานคร)
+          if (parsed.detailsText) {
+            const detailsInput = document.getElementById('details');
+            if (detailsInput) {
+              detailsInput.value = parsed.detailsText;
+            }
           }
-        } catch (ocrErr) {
-          console.warn('OCR Error:', ocrErr);
-        }
-      }
 
-      // นำค่าที่สแกนได้ไปกรอกลงในฟอร์มอัตโนมัติ
-      if (extracted && extracted.totalAmount && Number(extracted.totalAmount) > 0) {
-        const priceVal = Number(extracted.totalAmount).toFixed(2);
-        const currentCat = document.getElementById('category').value;
+          // 3. ใส่ยอดเงินรวม (เช่น 391.40)
+          if (parsed.totalAmount && Number(parsed.totalAmount) > 0) {
+            applyDetectedAmount(parsed.totalAmount);
 
-        // ถ้าตรวจพบคำว่า E20, LPG, NGV บนใบเสร็จ ให้สลับมาหมวดเชื้อเพลิงอัตโนมัติ
-        if (extracted.fuelType && ['E20', 'LPG', 'NGV'].includes(extracted.fuelType.toUpperCase()) && currentCat !== 'เชื้อเพลิง') {
-          selectCategory('เชื้อเพลิง');
-        }
-
-        // เลือกชนิดเชื้อเพลิง E20 / LPG / NGV อัตโนมัติ
-        if (extracted.fuelType) {
-          const ft = extracted.fuelType.toUpperCase();
-          const radio = document.querySelector('input[name="fuelType"][value="' + ft + '"]');
-          if (radio) {
-            radio.checked = true;
-            updateFuelLabel(ft);
+            if (candidatesBox && parsed.candidates && parsed.candidates.length > 1) {
+              candidatesBox.classList.remove('hidden');
+              candidatesBox.classList.add('flex');
+              candidatesBox.innerHTML = '<span class="text-[10px] text-[#6E6A63]">สลับยอด:</span>' +
+                parsed.candidates.slice(0, 4).map(function(c) {
+                  return '<button type="button" onclick="applyDetectedAmount(' + c + ')" class="text-[11px] font-bold px-2 py-0.5 rounded bg-white hover:bg-[#C84B31] hover:text-white text-[#263547] border border-[#DCD3C0] transition shadow-sm">฿' + Number(c).toFixed(2) + '</button>';
+                }).join('');
+            }
+            return;
           }
-        }
-
-        // กรอกราคาลงในช่องจำนวนเงิน
-        const singleAmountInput = document.getElementById('singleAmount');
-        const runFeeInput = document.getElementById('runFee');
-        if (singleAmountInput) {
-          singleAmountInput.value = priceVal;
-          singleAmountInput.classList.add('ring-2', 'ring-[#C84B31]');
-          setTimeout(function() { singleAmountInput.classList.remove('ring-2', 'ring-[#C84B31]'); }, 2500);
-        } else if (runFeeInput && !runFeeInput.value) {
-          runFeeInput.value = priceVal;
-        }
-
-        // เติมรายละเอียดชื่อปั๊ม/ทะเบียนรถ หากช่องรายละเอียดยังว่างอยู่
-        const detailsInput = document.getElementById('details');
-        if (extracted.stationOrNote && detailsInput && !detailsInput.value.trim()) {
-          detailsInput.value = extracted.stationOrNote;
         }
 
         if (ocrStatus) {
-          ocrStatus.innerHTML = '<i class="fa-solid fa-circle-check text-[#5F7A61]"></i> <span class="text-[#4E6650]">ดึงยอดเงินอัตโนมัติ: ฿' + Number(priceVal).toLocaleString('th-TH', { minimumFractionDigits: 2 }) + (extracted.fuelType ? ' (' + extracted.fuelType.toUpperCase() + ')' : '') + '</span>';
+          ocrStatus.innerHTML = '<i class="fa-solid fa-circle-info text-[#8C857B]"></i> <span class="text-[#6E6A63]">ไม่พบตัวเลขยอดเงินชัดเจน กรุณากรอกเอง</span>';
         }
-        showNotice('อ่านราคาจากใบเสร็จสำเร็จ: ฿' + Number(priceVal).toLocaleString('th-TH', { minimumFractionDigits: 2 }), false);
-      } else {
+      } catch (ocrErr) {
+        console.warn('OCR Error:', ocrErr);
         if (ocrStatus) {
-          ocrStatus.innerHTML = '<i class="fa-solid fa-circle-info text-[#8C857B]"></i> <span class="text-[#6E6A63]">ไม่พบตัวเลขยอดเงินชัดเจน กรุณาตรวจสอบหรือกรอกเอง</span>';
+          ocrStatus.innerHTML = '<i class="fa-solid fa-circle-info text-[#8C857B]"></i> <span class="text-[#6E6A63]">ไม่พบตัวเลขยอดเงินชัดเจน กรุณากรอกเอง</span>';
         }
       }
     }
 
-    // แปลงตัวอักษรจำนวนเงินภาษาไทย (เช่น "สามร้อยเก้าสิบเอ็ดบาทสี่สิบสตางค์") เป็นตัวเลข
-    function parseThaiBahtText(text) {
-      if (!text || text.indexOf('บาท') === -1) return null;
-      const m = text.match(/([ก-๙]+บาท[ก-๙]*สตางค์|[ก-๙]+บาทถ้วน)/);
-      if (!m) return null;
-      const phrase = m[1];
+    function parseTargetedReceiptZones(prodText, amtText, noteText) {
+      const upperProd = (prodText + ' ' + amtText).toUpperCase();
 
-      function decodeChunk(str) {
-        if (!str) return 0;
-        const digits = { 'หนึ่ง': 1, 'เอ็ด': 1, 'สอง': 2, 'ยี่': 2, 'สาม': 3, 'สี่': 4, 'ห้า': 5, 'หก': 6, 'เจ็ด': 7, 'แปด': 8, 'เก้า': 9 };
-        const mults = [
-          { k: 'หมื่น', v: 10000 },
-          { k: 'พัน', v: 1000 },
-          { k: 'ร้อย', v: 100 },
-          { k: 'สิบ', v: 10 }
-        ];
-        let total = 0;
-        let rem = str;
-        mults.forEach(function(u) {
-          const idx = rem.indexOf(u.k);
-          if (idx !== -1) {
-            const prefix = rem.slice(0, idx);
-            let d = 1;
-            Object.keys(digits).forEach(function(dk) {
-              if (prefix.indexOf(dk) !== -1) d = digits[dk];
-            });
-            total += d * u.v;
-            rem = rem.slice(idx + u.k.length);
-          }
-        });
-        Object.keys(digits).forEach(function(dk) {
-          if (rem.indexOf(dk) !== -1) total += digits[dk];
-        });
-        return total;
-      }
-
-      const parts = phrase.split('บาท');
-      const baht = decodeChunk(parts[0]);
-      const satang = (parts[1] && parts[1].indexOf('สตางค์') !== -1) ? decodeChunk(parts[1].replace('สตางค์', '')) : 0;
-      const res = baht + (satang / 100);
-      return res > 0 ? res : null;
-    }
-
-    // ฟังก์ชันสกัดยอดเงินและชนิดเชื้อเพลิงสำหรับใบกำกับภาษีไทย (เช่น Olympus Oil / PT / PTT / Bangchak)
-    function parseReceiptTextFallback(rawText) {
-      if (!rawText) return null;
-
-      // ทำความสะอาดข้อความที่ OCR อาจอ่านเว้นวรรคผิด เช่น "391 . 40" -> "391.40"
-      const normalized = rawText
-        .replace(/,/g, '')
-        .replace(/(\d)\s*\.\s*(\d{2})\b/g, '$1.$2');
-
-      const upper = normalized.toUpperCase();
+      // 1. ตรวจจับรายการสินค้าและชนิดเชื้อเพลิง (วงกลมที่ 1: PT MAX LPG)
       let fuelType = '';
-      if (upper.indexOf('LPG') !== -1 || upper.indexOf('MAX LPG') !== -1) fuelType = 'LPG';
-      else if (upper.indexOf('E20') !== -1) fuelType = 'E20';
-      else if (upper.indexOf('NGV') !== -1) fuelType = 'NGV';
-
-      // ดึงชื่อปั๊ม/รายละเอียด/หมายเหตุ (เช่น PT MAX LPG / โอลิมปัส ออยล์)
-      let noteParts = [];
-      if (upper.indexOf('OLYMPUS OIL') !== -1 || normalized.indexOf('โอลิมปัส') !== -1 || upper.indexOf('PT MAX') !== -1) {
-        noteParts.push('ปั๊ม PT (Olympus Oil)');
-      }
-      const plateMatch = normalized.match(/หมายเหตุ\s*2\s*[:：]?\s*([^\n\r]+)/);
-      if (plateMatch && plateMatch[1]) {
-        noteParts.push(plateMatch[1].trim());
-      }
-      const stationOrNote = noteParts.join(' - ');
-
-      // 1. ลองแปลงจากตัวอักษรภาษาไทย เช่น "(สามร้อยเก้าสิบเอ็ดบาทสี่สิบสตางค์)" -> 391.40 (แม่นยำมากสำหรับใบกำกับภาษี)
-      const thaiTextAmount = parseThaiBahtText(normalized.replace(/\s+/g, ''));
-      if (thaiTextAmount && thaiTextAmount >= 20 && thaiTextAmount <= 50000) {
-        return { totalAmount: thaiTextAmount, fuelType: fuelType, stationOrNote: stationOrNote };
+      let productLabel = '';
+      if (upperProd.indexOf('LPG') !== -1 || upperProd.indexOf('LP6') !== -1 || upperProd.indexOf('MAX') !== -1) {
+        fuelType = 'LPG';
+        productLabel = 'PT MAX LPG';
+      } else if (upperProd.indexOf('E20') !== -1) {
+        fuelType = 'E20';
+        productLabel = 'E20';
+      } else if (upperProd.indexOf('NGV') !== -1) {
+        fuelType = 'NGV';
+        productLabel = 'NGV';
       }
 
-      const lines = normalized.split('\n');
-
-      // 2. ค้นหาจากบรรทัดที่มีคำสำคัญ เช่น "มูลค่ารวมภาษี", "รวมทั้งสิ้น", "จำนวนเงิน", "Total", "Amount"
-      const priorityKeywords = /(?:มูลค่ารวมภาษี|รวมเงินทั้งสิ้น|ยอดรวมสุทธิ|จำนวนเงินรวม|total\s*amount|net\s*amount|grand\s*total)/i;
-      for (let i = 0; i < lines.length; i++) {
-        if (priorityKeywords.test(lines[i])) {
-          const numsInLine = lines[i].match(/\d{2,5}\.\d{2}/g);
-          if (numsInLine && numsInLine.length > 0) {
-            const val = parseFloat(numsInLine[numsInLine.length - 1]);
-            if (val >= 20 && val <= 50000) {
-              return { totalAmount: val, fuelType: fuelType, stationOrNote: stationOrNote };
-            }
+      // 2. ตรวจจับหมายเหตุ 2 / ทะเบียนรถ (วงกลมที่ 3: หมายเหตุ2 : ฌถ6490 กรุงเทพมหานคร)
+      let extractedNote = '';
+      if (noteText) {
+        const lines = noteText.split(/[\r\n]+/).map(function(l) { return l.trim(); }).filter(Boolean);
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          // ค้นหาบรรทัดที่มีคำว่า หมายเหตุ2 หรือมีตัวเลขทะเบียนรถ 3-4 หลัก หรือคำว่า กรุงเทพ
+          if (/หมายเหตุ\s*2|กรุงเทพ|[ก-ฮ]{1,3}\s*\d{3,4}/.test(line) && !/Maxcard/i.test(line)) {
+            extractedNote = line
+              .replace(/^.*หมายเหตุ\s*2\s*[:：;.\-]?\s*/i, '')
+              .replace(/[|_=\[\]]/g, '')
+              .trim();
+            if (extractedNote.length >= 3) break;
           }
         }
       }
 
-      // 3. ค้นหาจากบรรทัดรายการสินค้า เช่น "PT MAX LPG ... 29.44 BT 14.72 42.00 391.40" (ตัวเลขตัวสุดท้ายของบรรทัดคือ Amount)
-      for (let i = 0; i < lines.length; i++) {
-        if (/(?:PT\s*MAX|LPG|E20|NGV|0000\d{2})/i.test(lines[i])) {
-          const lineNums = lines[i].match(/\d{2,5}\.\d{2}/g);
-          if (lineNums && lineNums.length > 0) {
-            const lastNum = parseFloat(lineNums[lineNums.length - 1]);
-            if (lastNum >= 30 && lastNum <= 50000) {
-              return { totalAmount: lastNum, fuelType: fuelType, stationOrNote: stationOrNote };
-            }
+      const detailsParts = [];
+      if (productLabel) detailsParts.push(productLabel);
+      if (extractedNote) detailsParts.push(extractedNote);
+      const detailsText = detailsParts.join(' • ');
+
+      // 3. ตรวจจับยอดเงินจากคอลัมน์ขวาสุด (วงกลมที่ 2: 391.40, 25.61, 365.79)
+      // แปลงตัวอักษรที่ OCR มักอ่านเพี้ยนจากตัวเลขกลับเป็นตัวเลข
+      const normalizedAmt = (amtText || '')
+        .replace(/[,]/g, '.')
+        .replace(/[OQo]/g, '0')
+        .replace(/[Il|!]/g, '1')
+        .replace(/[S$]/g, '5')
+        .replace(/(\d)\s+\.\s*(\d{2})/g, '$1.$2')
+        .replace(/(\d)\.\s+(\d{2})/g, '$1.$2');
+
+      const candidates = [];
+      // จับตัวเลขทศนิยม 2 ตำแหน่ง เช่น 391.40, 365.79, 25.61 (ไม่ต้องใช้ \b)
+      const decRegex = /(\d{2,5})\.(\d{2})(?!\d)/g;
+      let match;
+      while ((match = decRegex.exec(normalizedAmt)) !== null) {
+        const val = parseFloat(match[1] + '.' + match[2]);
+        if (val >= 20 && val <= 20000 && (val < 1990 || val > 2600) && Math.floor(val) !== 5278 && Math.floor(val) !== 5279) {
+          candidates.push(val);
+        }
+      }
+
+      // กรณี OCR มองข้ามจุดทศนิยม (เช่นอ่าน 391.40 เป็น 39140 และ 365.79 เป็น 36579)
+      if (candidates.length === 0) {
+        const rawDigitsRegex = /(\d{4,6})/g;
+        let dm;
+        while ((dm = rawDigitsRegex.exec(normalizedAmt)) !== null) {
+          const rawStr = dm[1];
+          const val = parseFloat(rawStr.slice(0, rawStr.length - 2) + '.' + rawStr.slice(-2));
+          if (val >= 30 && val <= 15000 && (val < 1990 || val > 2600)) {
+            candidates.push(val);
           }
         }
       }
 
-      // 4. ค้นหาตัวเลขทศนิยม 2 ตำแหน่งทั้งหมดในใบเสร็จ แล้วเลือกค่าที่มากที่สุด (เพราะยอดรวมภาษี "391.40" จะมากกว่ายอดก่อนภาษี "365.79" และส่วนลด "42.00" เสมอ)
-      const allDecimals = normalized.match(/\b\d{2,5}\.\d{2}\b/g);
-      if (allDecimals && allDecimals.length > 0) {
-        const validNums = allDecimals
-          .map(function(n) { return parseFloat(n); })
-          .filter(function(n) {
-            // กรองค่าที่ไม่ใช่ยอดเงิน เช่น 1.50% หรือเลขปี ค.ศ./พ.ศ.
-            return n >= 35 && n <= 35000 && (n < 1990 || n > 2600);
-          });
+      // เรียงลำดับตัวเลขที่ไม่ซ้ำจากมากไปน้อย
+      const uniqueList = [];
+      candidates.forEach(function(n) {
+        const f = Number(n.toFixed(2));
+        if (uniqueList.indexOf(f) === -1) uniqueList.push(f);
+      });
+      uniqueList.sort(function(a, b) { return b - a; });
 
-        if (validNums.length > 0) {
-          // หากมีตัวเลขที่ซ้ำกัน 2 จุด (เช่น 391.40 ที่อยู่ในตาราง Amount และช่องมูลค่ารวมภาษี) ให้ให้ความสำคัญเป็นอันดับแรก
-          const freq = {};
-          let bestRepeated = 0;
-          validNums.forEach(function(n) {
-            const k = n.toFixed(2);
-            freq[k] = (freq[k] || 0) + 1;
-            if (freq[k] >= 2 && n > bestRepeated) {
-              bestRepeated = n;
+      let bestAmount = 0;
+
+      // กฎที่ 1: เช็คความสัมพันธ์ VAT 7% (365.79 * 1.07 = 391.40) แม่นยำ 100%
+      for (let i = 0; i < uniqueList.length; i++) {
+        for (let j = 0; j < uniqueList.length; j++) {
+          if (i !== j && uniqueList[i] > uniqueList[j]) {
+            if (Math.abs(uniqueList[i] - (uniqueList[j] * 1.07)) <= 0.25) {
+              bestAmount = uniqueList[i];
+              break;
             }
-          });
-          if (bestRepeated > 0) {
-            return { totalAmount: bestRepeated, fuelType: fuelType, stationOrNote: stationOrNote };
           }
-
-          const maxAmount = Math.max.apply(null, validNums);
-          return { totalAmount: maxAmount, fuelType: fuelType, stationOrNote: stationOrNote };
         }
+        if (bestAmount > 0) break;
       }
 
-      return null;
+      // กฎที่ 2: เช็คตัวเลขที่ปรากฏซ้ำ 2 ครั้งในคอลัมน์ขวาสุด (ช่องจำนวนเงิน 391.40 ด้านบน และ ช่องมูลค่ารวมภาษี 391.40 ด้านล่าง)
+      if (!bestAmount && candidates.length > 0) {
+        const counts = {};
+        candidates.forEach(function(n) {
+          const k = n.toFixed(2);
+          counts[k] = (counts[k] || 0) + 1;
+          if (counts[k] >= 2 && n > bestAmount) {
+            bestAmount = n;
+          }
+        });
+      }
+
+      // กฎที่ 3: ใช้ค่ามากที่สุดในคอลัมน์จำนวนเงิน (เพราะมูลค่ารวมภาษี 391.40 จะมากกว่ามูลค่าก่อนภาษี 365.79 และภาษี 25.61 เสมอ)
+      if (!bestAmount && uniqueList.length > 0) {
+        bestAmount = uniqueList[0];
+      }
+
+      return {
+        totalAmount: bestAmount,
+        fuelType: fuelType,
+        detailsText: detailsText,
+        candidates: uniqueList
+      };
     }
 
     function clearImage() {
       compressedBase64 = '';
       highResOcrDataUrl = '';
+      croppedTableOcrDataUrl = '';
+      zoneProductDataUrl = '';
+      zoneAmountDataUrl = '';
+      zoneNoteDataUrl = '';
       compressedFileName = '';
       document.getElementById('fileInput').value = '';
       document.getElementById('previewBox').classList.add('hidden');
@@ -1027,28 +975,30 @@
         ocrStatus.classList.add('hidden');
         ocrStatus.classList.remove('flex');
       }
+      const candidatesBox = document.getElementById('ocrCandidatesBox');
+      if (candidatesBox) {
+        candidatesBox.classList.add('hidden');
+        candidatesBox.innerHTML = '';
+      }
     }
 
     async function handleSubmit(e) {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
-      const saveGpsChecked = document.getElementById('saveGpsToggle').checked;
       btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-location-crosshairs fa-spin"></i> กำลังดึงพิกัด GPS ล่าสุด...';
 
-      let coords = { lat: '', lng: '' };
-      if (saveGpsChecked) {
-        btn.innerHTML = '<i class="fa-solid fa-location-crosshairs fa-spin text-[#E8C574]"></i> <span>กำลังดึงพิกัด GPS ปัจจุบัน...</span>';
-        try {
-          coords = await acquireMandatoryGPS(true);
-        } catch (gpsErr) {
-          showNotice('กรุณาเปิด Location (GPS) และอนุญาตสิทธิ์ก่อนบันทึกครับ', true);
-          btn.disabled = false;
-          btn.innerHTML = '<span>บันทึกข้อมูลเข้าสู่ระบบ</span> <i class="fa-solid fa-paper-plane text-[#E8C574] text-sm"></i>';
-          return;
-        }
+      let coords;
+      try {
+        coords = await acquireMandatoryGPS(true);
+      } catch (gpsErr) {
+        showNotice('กรุณาเปิด Location (GPS) และอนุญาตสิทธิ์ก่อนบันทึกครับ', true);
+        btn.disabled = false;
+        btn.innerHTML = '<span>บันทึกข้อมูลเข้าสู่ระบบ</span> <i class="fa-solid fa-paper-plane text-[#E8C574] text-sm"></i>';
+        return;
       }
 
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-amber-400"></i> <span>กำลังซิงค์ข้อมูลเข้า Google Sheet...</span>';
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-amber-400"></i> กำลังซิงค์ข้อมูลเข้า Google Sheet...';
 
       const cat = document.getElementById('category').value;
       const lat = coords.lat;
@@ -1060,10 +1010,10 @@
         date: document.getElementById('date').value,
         category: cat,
         details: document.getElementById('details').value,
-        locationName: saveGpsChecked ? (document.getElementById('locationName').value || ('พิกัด ' + lat + ', ' + lng)) : '',
+        locationName: document.getElementById('locationName').value || ('พิกัด ' + lat + ', ' + lng),
         lat: lat,
         lng: lng,
-        mapUrl: (lat && lng) ? ('https://www.google.com/maps?q=' + lat + ',' + lng) : '',
+        mapUrl: 'https://www.google.com/maps?q=' + lat + ',' + lng,
         runFee: 0, cashCollected: 0, tollFee: 0, parkingFee: 0, tips: 0,
         fuelType: '', fuelAmount: 0, amount: 0,
         netExpense: 0, cashIn: 0,
@@ -1113,18 +1063,16 @@
           document.getElementById('locationName').value = '';
           clearImage();
           selectCategory(cat);
-          if (document.getElementById('saveGpsToggle').checked) {
-            acquireMandatoryGPS(false).catch(function() {});
-          }
-          btn.innerHTML = '<i class="fa-solid fa-circle-check text-[#88B08B]"></i> <span>บันทึกลงแท็บ WepApp สำเร็จ!</span>';
+          acquireMandatoryGPS(false);
           showNotice('บันทึกข้อมูลลงแท็บ WepApp สำเร็จ!', false);
+          btn.innerHTML = '<i class="fa-solid fa-circle-check text-[#88B08B]"></i> <span>บันทึกสำเร็จ!</span>';
         } else {
           showNotice('เกิดข้อผิดพลาด: ' + (result.message || 'ไม่ทราบสาเหตุ'), true);
           btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-[#E57373]"></i> <span>ลองใหม่อีกครั้ง</span>';
         }
       } catch (err) {
         console.error('Error:', err);
-        showNotice('ไม่สามารถติดต่อ Google Sheet ได้ กรุณาตรวจสอบสิทธิ์ Anyone ใน Apps Script', true);
+        showNotice('ไม่สามารถติดต่อ Google Sheet ได้ กรุณาตรวจสอบสิทธิ์', true);
         btn.innerHTML = '<span>บันทึกข้อมูลเข้าสู่ระบบ</span> <i class="fa-solid fa-paper-plane text-[#E8C574]"></i>';
       } finally {
         btn.disabled = false;
@@ -1203,6 +1151,21 @@
           '</div>'
         ].join('');
       }).join('');
+    }
+
+    function openSlipByIndex(idx) {
+      const r = records[idx];
+      if (!r) return;
+      if (r.fileUrl && r.fileUrl.indexOf('http') === 0) {
+        window.open(r.fileUrl, '_blank');
+      } else if (r.imageBase64) {
+        viewFullImage(r.imageBase64);
+      }
+    }
+
+    function viewFullImage(src) {
+      document.getElementById('modalImgSrc').src = src;
+      document.getElementById('imgModal').classList.remove('hidden');
     }
 
     function exportCSV() {
