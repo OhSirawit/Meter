@@ -16,6 +16,7 @@
   <link id="appManifest" rel="manifest" href="">
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
@@ -282,11 +283,19 @@
                 <div>
                   <p class="text-xs font-bold text-[#2B2B2B]" id="previewName">สลิปใบเสร็จ.jpg</p>
                   <p class="text-[11px] text-[#4E6650] font-medium mt-0.5" id="previewSize">ย่อขนาดเรียบร้อย</p>
+                  <p class="text-[11px] text-[#C84B31] font-semibold mt-0.5 hidden items-center gap-1.5" id="ocrStatusText">
+                    <i class="fa-solid fa-wand-magic-sparkles fa-spin"></i> <span>กำลังสแกนอ่านยอดเงินจากใบเสร็จ...</span>
+                  </p>
                 </div>
               </div>
-              <button type="button" onclick="clearImage()" class="w-8 h-8 rounded-lg bg-white text-[#C84B31] hover:bg-[#C84B31] hover:text-white border border-[#E5DEC9] flex items-center justify-center transition">
-                <i class="fa-solid fa-trash-can text-xs"></i>
-              </button>
+              <div class="flex items-center gap-1.5">
+                <button type="button" onclick="scanReceiptPrice()" title="สแกนอ่านราคาอีกครั้ง" class="w-8 h-8 rounded-lg bg-white text-[#263547] hover:bg-[#263547] hover:text-white border border-[#E5DEC9] flex items-center justify-center transition">
+                  <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+                </button>
+                <button type="button" onclick="clearImage()" class="w-8 h-8 rounded-lg bg-white text-[#C84B31] hover:bg-[#C84B31] hover:text-white border border-[#E5DEC9] flex items-center justify-center transition">
+                  <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -734,8 +743,162 @@
         document.getElementById('previewName').textContent = compressedFileName;
         document.getElementById('previewSize').textContent = 'ขนาดหลังบีบอัด: ~' + kb + ' KB';
         document.getElementById('previewBox').classList.remove('hidden');
+
+        // สแกนอ่านราคาและชนิดเชื้อเพลิงจากรูปใบเสร็จอัตโนมัติ
+        scanReceiptPrice();
       };
       img.src = dataUrl;
+    }
+
+    async function scanReceiptPrice() {
+      if (!compressedBase64) return;
+      const ocrStatus = document.getElementById('ocrStatusText');
+      if (ocrStatus) {
+        ocrStatus.classList.remove('hidden');
+        ocrStatus.classList.add('flex');
+        ocrStatus.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles fa-spin"></i> <span>กำลังสแกนอ่านราคาจากใบเสร็จ...</span>';
+      }
+
+      const rawBase64 = compressedBase64.split(',')[1];
+      let extracted = null;
+
+      // 1. ลองอ่านด้วย Gemini Vision API ก่อน (แม่นยำสูงสำหรับใบเสร็จปั๊มน้ำมันและสลิปไทย)
+      try {
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+        const prompt = "อ่านใบเสร็จน้ำมันหรือสลิปโอนเงินนี้ แล้วดึงข้อมูลเป็น JSON: totalAmount (ตัวเลขยอดเงินรวมสุทธิบาท), fuelType ('E20', 'LPG', 'NGV' หรือ '' ถ้าไม่พบ), stationOrNote (ชื่อปั๊มน้ำมันหรือรายละเอียดสั้นๆ ถ้ามี)";
+        const payload = {
+          contents: [{
+            role: "user",
+            parts: [
+              { text: prompt },
+              { inlineData: { mimeType: "image/jpeg", data: rawBase64 } }
+            ]
+          }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "OBJECT",
+              properties: {
+                totalAmount: { type: "NUMBER" },
+                fuelType: { type: "STRING" },
+                stationOrNote: { type: "STRING" }
+              }
+            }
+          }
+        };
+
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const result = await res.json();
+          const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (jsonText) {
+            extracted = JSON.parse(jsonText);
+          }
+        }
+      } catch (err) {
+        // กรณีเปิดใช้งานนอกสภาพแวดล้อมและไม่มี API Key จะสลับไปใช้ Tesseract OCR อัตโนมัติ
+      }
+
+      // 2. Fallback: ใช้ Tesseract.js สแกนตัวเลขและข้อความจากใบเสร็จโดยตรงบนเบราว์เซอร์ (ทำงานได้ทุกที่ 100%)
+      if (!extracted || !extracted.totalAmount) {
+        try {
+          if (window.Tesseract) {
+            const { data: { text } } = await Tesseract.recognize(compressedBase64, 'eng+tha');
+            extracted = parseReceiptTextFallback(text);
+          }
+        } catch (ocrErr) {
+          console.warn('OCR Error:', ocrErr);
+        }
+      }
+
+      // นำค่าที่สแกนได้ไปกรอกลงในฟอร์มอัตโนมัติ
+      if (extracted && extracted.totalAmount && Number(extracted.totalAmount) > 0) {
+        const priceVal = Number(extracted.totalAmount).toFixed(2);
+        const currentCat = document.getElementById('category').value;
+
+        // ถ้าตรวจพบคำว่า E20, LPG, NGV บนใบเสร็จ แต่ยังไม่ได้เลือกหมวดเชื้อเพลิง ให้สลับมาหมวดเชื้อเพลิงอัตโนมัติ
+        if (extracted.fuelType && ['E20', 'LPG', 'NGV'].includes(extracted.fuelType.toUpperCase()) && currentCat !== 'เชื้อเพลิง') {
+          selectCategory('เชื้อเพลิง');
+        }
+
+        // เลือกชนิดเชื้อเพลิง E20 / LPG / NGV อัตโนมัติหากตรวจพบ
+        if (extracted.fuelType) {
+          const ft = extracted.fuelType.toUpperCase();
+          const radio = document.querySelector('input[name="fuelType"][value="' + ft + '"]');
+          if (radio) {
+            radio.checked = true;
+            updateFuelLabel(ft);
+          }
+        }
+
+        // กรอกราคาลงในช่องจำนวนเงิน
+        const singleAmountInput = document.getElementById('singleAmount');
+        const runFeeInput = document.getElementById('runFee');
+        if (singleAmountInput) {
+          singleAmountInput.value = priceVal;
+          singleAmountInput.classList.add('ring-2', 'ring-[#C84B31]');
+          setTimeout(function() { singleAmountInput.classList.remove('ring-2', 'ring-[#C84B31]'); }, 2500);
+        } else if (runFeeInput && !runFeeInput.value) {
+          runFeeInput.value = priceVal;
+        }
+
+        // เติมรายละเอียดชื่อปั๊มหากช่องรายละเอียดยังว่างอยู่
+        const detailsInput = document.getElementById('details');
+        if (extracted.stationOrNote && detailsInput && !detailsInput.value.trim()) {
+          detailsInput.value = extracted.stationOrNote;
+        }
+
+        if (ocrStatus) {
+          ocrStatus.innerHTML = '<i class="fa-solid fa-circle-check text-[#5F7A61]"></i> <span class="text-[#4E6650]">ดึงยอดเงินอัตโนมัติ: ฿' + Number(priceVal).toLocaleString('th-TH', { minimumFractionDigits: 2 }) + (extracted.fuelType ? ' (' + extracted.fuelType.toUpperCase() + ')' : '') + '</span>';
+        }
+        showNotice('อ่านราคาจากใบเสร็จสำเร็จ: ฿' + Number(priceVal).toLocaleString('th-TH', { minimumFractionDigits: 2 }), false);
+      } else {
+        if (ocrStatus) {
+          ocrStatus.innerHTML = '<i class="fa-solid fa-circle-info text-[#8C857B]"></i> <span class="text-[#6E6A63]">ไม่พบตัวเลขยอดเงินชัดเจน กรุณาตรวจสอบหรือกรอกเอง</span>';
+        }
+      }
+    }
+
+    // ฟังก์ชันสกัดยอดเงินและชนิดเชื้อเพลิงด้วย Regex กรณีใช้ Tesseract OCR
+    function parseReceiptTextFallback(rawText) {
+      if (!rawText) return null;
+      const upper = rawText.toUpperCase();
+      let fuelType = '';
+      if (upper.indexOf('E20') !== -1) fuelType = 'E20';
+      else if (upper.indexOf('LPG') !== -1) fuelType = 'LPG';
+      else if (upper.indexOf('NGV') !== -1) fuelType = 'NGV';
+
+      const cleanText = rawText.replace(/,/g, '');
+      const lines = cleanText.split('\n');
+      const keywordRegex = /(?:total|amount|net|sum|รวม|สุทธิ|จำนวนเงิน|ยอดเงิน|บาท|thb|baht)[^\d]*(\d{2,5}(?:\.\d{2})?)/i;
+
+      for (let i = 0; i < lines.length; i++) {
+        const m = lines[i].match(keywordRegex);
+        if (m && m[1]) {
+          const val = parseFloat(m[1]);
+          if (val >= 20 && val <= 50000) {
+            return { totalAmount: val, fuelType: fuelType, stationOrNote: '' };
+          }
+        }
+      }
+
+      // ค้นหาตัวเลขทศนิยม 2 ตำแหน่งที่เป็นไปได้ว่าจะเป็นยอดเงินรวม (เช่น 500.00, 1200.50)
+      const decimalMatches = cleanText.match(/\b\d{2,4}\.\d{2}\b/g);
+      if (decimalMatches && decimalMatches.length > 0) {
+        const nums = decimalMatches
+          .map(function(n) { return parseFloat(n); })
+          .filter(function(n) { return n >= 30 && n <= 30000 && (n < 1990 || n > 2035); });
+        if (nums.length > 0) {
+          const maxAmount = Math.max.apply(null, nums);
+          return { totalAmount: maxAmount, fuelType: fuelType, stationOrNote: '' };
+        }
+      }
+      return null;
     }
 
     function clearImage() {
@@ -743,20 +906,10 @@
       compressedFileName = '';
       document.getElementById('fileInput').value = '';
       document.getElementById('previewBox').classList.add('hidden');
-    }
-
-    function viewFullImage(src) {
-      document.getElementById('modalImgSrc').src = src;
-      document.getElementById('imgModal').classList.remove('hidden');
-    }
-
-    function openSlipByIndex(idx) {
-      const r = records[idx];
-      if (!r) return;
-      if (r.fileUrl && r.fileUrl.indexOf('http') === 0) {
-        window.open(r.fileUrl, '_blank');
-      } else if (r.imageBase64) {
-        viewFullImage(r.imageBase64);
+      const ocrStatus = document.getElementById('ocrStatusText');
+      if (ocrStatus) {
+        ocrStatus.classList.add('hidden');
+        ocrStatus.classList.remove('flex');
       }
     }
 
