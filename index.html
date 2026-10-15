@@ -421,6 +421,7 @@
     }
 
     let compressedBase64 = '';
+    let highResOcrDataUrl = '';
     let compressedFileName = '';
     let cameraStream = null;
     let facingMode = 'environment';
@@ -726,6 +727,19 @@
     function compressImageFromSource(dataUrl, fileName) {
       const img = new Image();
       img.onload = function() {
+        // 1. สร้างภาพความละเอียดสูงและเร่งความคมชัด (High-Contrast) สำหรับสแกน OCR โดยเฉพาะ
+        const OCR_MAX = 2200;
+        let ow = img.width, oh = img.height;
+        if (ow > oh && ow > OCR_MAX) { oh = Math.round(oh * (OCR_MAX / ow)); ow = OCR_MAX; }
+        else if (oh > ow && oh > OCR_MAX) { ow = Math.round(ow * (OCR_MAX / oh)); oh = OCR_MAX; }
+
+        const ocrCanvas = document.createElement('canvas');
+        ocrCanvas.width = ow; ocrCanvas.height = oh;
+        const ocrCtx = ocrCanvas.getContext('2d');
+        ocrCtx.drawImage(img, 0, 0, ow, oh);
+        highResOcrDataUrl = ocrCanvas.toDataURL('image/png');
+
+        // 2. สร้างภาพบีบอัดขนาดเล็กสำหรับอัปโหลดขึ้น Google Drive ให้รวดเร็ว
         const MAX_SIDE = 1200;
         let w = img.width, h = img.height;
         if (w > h && w > MAX_SIDE) { h = Math.round(h * (MAX_SIDE / w)); w = MAX_SIDE; }
@@ -735,7 +749,7 @@
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
 
-        compressedBase64 = canvas.toDataURL('image/jpeg', 0.72);
+        compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
         compressedFileName = fileName.replace(/\.[^/.]+$/, '') + '.jpg';
 
         const kb = Math.round((compressedBase64.length * 3 / 4) / 1024);
@@ -744,7 +758,7 @@
         document.getElementById('previewSize').textContent = 'ขนาดหลังบีบอัด: ~' + kb + ' KB';
         document.getElementById('previewBox').classList.remove('hidden');
 
-        // สแกนอ่านราคาและชนิดเชื้อเพลิงจากรูปใบเสร็จอัตโนมัติ
+        // สแกนอ่านราคาและชนิดเชื้อเพลิงจากรูปใบเสร็จอัตโนมัติทันที
         scanReceiptPrice();
       };
       img.src = dataUrl;
@@ -756,59 +770,60 @@
       if (ocrStatus) {
         ocrStatus.classList.remove('hidden');
         ocrStatus.classList.add('flex');
-        ocrStatus.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles fa-spin"></i> <span>กำลังสแกนอ่านราคาจากใบเสร็จ...</span>';
+        ocrStatus.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles fa-spin"></i> <span>กำลังสแกนอ่านยอดเงินจากใบเสร็จ...</span>';
       }
 
       const rawBase64 = compressedBase64.split(',')[1];
       let extracted = null;
 
-      // 1. ลองอ่านด้วย Gemini Vision API ก่อน (แม่นยำสูงสำหรับใบเสร็จปั๊มน้ำมันและสลิปไทย)
+      // 1. ลองอ่านด้วย Gemini Vision API ก่อน (กรณีมี API Key)
       try {
         const apiKey = "";
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-        const prompt = "อ่านใบเสร็จน้ำมันหรือสลิปโอนเงินนี้ แล้วดึงข้อมูลเป็น JSON: totalAmount (ตัวเลขยอดเงินรวมสุทธิบาท), fuelType ('E20', 'LPG', 'NGV' หรือ '' ถ้าไม่พบ), stationOrNote (ชื่อปั๊มน้ำมันหรือรายละเอียดสั้นๆ ถ้ามี)";
-        const payload = {
-          contents: [{
-            role: "user",
-            parts: [
-              { text: prompt },
-              { inlineData: { mimeType: "image/jpeg", data: rawBase64 } }
-            ]
-          }],
-          generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: "OBJECT",
-              properties: {
-                totalAmount: { type: "NUMBER" },
-                fuelType: { type: "STRING" },
-                stationOrNote: { type: "STRING" }
+        if (apiKey) {
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+          const prompt = "อ่านใบเสร็จน้ำมันหรือใบกำกับภาษีนี้ แล้วดึงข้อมูลเป็น JSON: totalAmount (ตัวเลขยอดเงินรวมสุทธิ/มูลค่ารวมภาษี), fuelType ('E20', 'LPG', 'NGV' หรือ '' ถ้าไม่พบ), stationOrNote (ชื่อปั๊มน้ำมัน/สาขา/ทะเบียนรถ ถ้ามี)";
+          const payload = {
+            contents: [{
+              role: "user",
+              parts: [
+                { text: prompt },
+                { inlineData: { mimeType: "image/jpeg", data: rawBase64 } }
+              ]
+            }],
+            generationConfig: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: "OBJECT",
+                properties: {
+                  totalAmount: { type: "NUMBER" },
+                  fuelType: { type: "STRING" },
+                  stationOrNote: { type: "STRING" }
+                }
               }
             }
-          }
-        };
+          };
 
-        const res = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          const result = await res.json();
-          const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (jsonText) {
-            extracted = JSON.parse(jsonText);
+          const res = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            const result = await res.json();
+            const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (jsonText) {
+              extracted = JSON.parse(jsonText);
+            }
           }
         }
-      } catch (err) {
-        // กรณีเปิดใช้งานนอกสภาพแวดล้อมและไม่มี API Key จะสลับไปใช้ Tesseract OCR อัตโนมัติ
-      }
+      } catch (err) {}
 
-      // 2. Fallback: ใช้ Tesseract.js สแกนตัวเลขและข้อความจากใบเสร็จโดยตรงบนเบราว์เซอร์ (ทำงานได้ทุกที่ 100%)
+      // 2. ใช้ Tesseract.js สแกนจากภาพความละเอียดสูง (highResOcrDataUrl) บนเบราว์เซอร์
       if (!extracted || !extracted.totalAmount) {
         try {
           if (window.Tesseract) {
-            const { data: { text } } = await Tesseract.recognize(compressedBase64, 'eng+tha');
+            const targetImg = highResOcrDataUrl || compressedBase64;
+            const { data: { text } } = await Tesseract.recognize(targetImg, 'eng+tha');
             extracted = parseReceiptTextFallback(text);
           }
         } catch (ocrErr) {
@@ -821,12 +836,12 @@
         const priceVal = Number(extracted.totalAmount).toFixed(2);
         const currentCat = document.getElementById('category').value;
 
-        // ถ้าตรวจพบคำว่า E20, LPG, NGV บนใบเสร็จ แต่ยังไม่ได้เลือกหมวดเชื้อเพลิง ให้สลับมาหมวดเชื้อเพลิงอัตโนมัติ
+        // ถ้าตรวจพบคำว่า E20, LPG, NGV บนใบเสร็จ ให้สลับมาหมวดเชื้อเพลิงอัตโนมัติ
         if (extracted.fuelType && ['E20', 'LPG', 'NGV'].includes(extracted.fuelType.toUpperCase()) && currentCat !== 'เชื้อเพลิง') {
           selectCategory('เชื้อเพลิง');
         }
 
-        // เลือกชนิดเชื้อเพลิง E20 / LPG / NGV อัตโนมัติหากตรวจพบ
+        // เลือกชนิดเชื้อเพลิง E20 / LPG / NGV อัตโนมัติ
         if (extracted.fuelType) {
           const ft = extracted.fuelType.toUpperCase();
           const radio = document.querySelector('input[name="fuelType"][value="' + ft + '"]');
@@ -847,7 +862,7 @@
           runFeeInput.value = priceVal;
         }
 
-        // เติมรายละเอียดชื่อปั๊มหากช่องรายละเอียดยังว่างอยู่
+        // เติมรายละเอียดชื่อปั๊ม/ทะเบียนรถ หากช่องรายละเอียดยังว่างอยู่
         const detailsInput = document.getElementById('details');
         if (extracted.stationOrNote && detailsInput && !detailsInput.value.trim()) {
           detailsInput.value = extracted.stationOrNote;
@@ -864,45 +879,146 @@
       }
     }
 
-    // ฟังก์ชันสกัดยอดเงินและชนิดเชื้อเพลิงด้วย Regex กรณีใช้ Tesseract OCR
+    // แปลงตัวอักษรจำนวนเงินภาษาไทย (เช่น "สามร้อยเก้าสิบเอ็ดบาทสี่สิบสตางค์") เป็นตัวเลข
+    function parseThaiBahtText(text) {
+      if (!text || text.indexOf('บาท') === -1) return null;
+      const m = text.match(/([ก-๙]+บาท[ก-๙]*สตางค์|[ก-๙]+บาทถ้วน)/);
+      if (!m) return null;
+      const phrase = m[1];
+
+      function decodeChunk(str) {
+        if (!str) return 0;
+        const digits = { 'หนึ่ง': 1, 'เอ็ด': 1, 'สอง': 2, 'ยี่': 2, 'สาม': 3, 'สี่': 4, 'ห้า': 5, 'หก': 6, 'เจ็ด': 7, 'แปด': 8, 'เก้า': 9 };
+        const mults = [
+          { k: 'หมื่น', v: 10000 },
+          { k: 'พัน', v: 1000 },
+          { k: 'ร้อย', v: 100 },
+          { k: 'สิบ', v: 10 }
+        ];
+        let total = 0;
+        let rem = str;
+        mults.forEach(function(u) {
+          const idx = rem.indexOf(u.k);
+          if (idx !== -1) {
+            const prefix = rem.slice(0, idx);
+            let d = 1;
+            Object.keys(digits).forEach(function(dk) {
+              if (prefix.indexOf(dk) !== -1) d = digits[dk];
+            });
+            total += d * u.v;
+            rem = rem.slice(idx + u.k.length);
+          }
+        });
+        Object.keys(digits).forEach(function(dk) {
+          if (rem.indexOf(dk) !== -1) total += digits[dk];
+        });
+        return total;
+      }
+
+      const parts = phrase.split('บาท');
+      const baht = decodeChunk(parts[0]);
+      const satang = (parts[1] && parts[1].indexOf('สตางค์') !== -1) ? decodeChunk(parts[1].replace('สตางค์', '')) : 0;
+      const res = baht + (satang / 100);
+      return res > 0 ? res : null;
+    }
+
+    // ฟังก์ชันสกัดยอดเงินและชนิดเชื้อเพลิงสำหรับใบกำกับภาษีไทย (เช่น Olympus Oil / PT / PTT / Bangchak)
     function parseReceiptTextFallback(rawText) {
       if (!rawText) return null;
-      const upper = rawText.toUpperCase();
+
+      // ทำความสะอาดข้อความที่ OCR อาจอ่านเว้นวรรคผิด เช่น "391 . 40" -> "391.40"
+      const normalized = rawText
+        .replace(/,/g, '')
+        .replace(/(\d)\s*\.\s*(\d{2})\b/g, '$1.$2');
+
+      const upper = normalized.toUpperCase();
       let fuelType = '';
-      if (upper.indexOf('E20') !== -1) fuelType = 'E20';
-      else if (upper.indexOf('LPG') !== -1) fuelType = 'LPG';
+      if (upper.indexOf('LPG') !== -1 || upper.indexOf('MAX LPG') !== -1) fuelType = 'LPG';
+      else if (upper.indexOf('E20') !== -1) fuelType = 'E20';
       else if (upper.indexOf('NGV') !== -1) fuelType = 'NGV';
 
-      const cleanText = rawText.replace(/,/g, '');
-      const lines = cleanText.split('\n');
-      const keywordRegex = /(?:total|amount|net|sum|รวม|สุทธิ|จำนวนเงิน|ยอดเงิน|บาท|thb|baht)[^\d]*(\d{2,5}(?:\.\d{2})?)/i;
+      // ดึงชื่อปั๊ม/รายละเอียด/หมายเหตุ (เช่น PT MAX LPG / โอลิมปัส ออยล์)
+      let noteParts = [];
+      if (upper.indexOf('OLYMPUS OIL') !== -1 || normalized.indexOf('โอลิมปัส') !== -1 || upper.indexOf('PT MAX') !== -1) {
+        noteParts.push('ปั๊ม PT (Olympus Oil)');
+      }
+      const plateMatch = normalized.match(/หมายเหตุ\s*2\s*[:：]?\s*([^\n\r]+)/);
+      if (plateMatch && plateMatch[1]) {
+        noteParts.push(plateMatch[1].trim());
+      }
+      const stationOrNote = noteParts.join(' - ');
 
+      // 1. ลองแปลงจากตัวอักษรภาษาไทย เช่น "(สามร้อยเก้าสิบเอ็ดบาทสี่สิบสตางค์)" -> 391.40 (แม่นยำมากสำหรับใบกำกับภาษี)
+      const thaiTextAmount = parseThaiBahtText(normalized.replace(/\s+/g, ''));
+      if (thaiTextAmount && thaiTextAmount >= 20 && thaiTextAmount <= 50000) {
+        return { totalAmount: thaiTextAmount, fuelType: fuelType, stationOrNote: stationOrNote };
+      }
+
+      const lines = normalized.split('\n');
+
+      // 2. ค้นหาจากบรรทัดที่มีคำสำคัญ เช่น "มูลค่ารวมภาษี", "รวมทั้งสิ้น", "จำนวนเงิน", "Total", "Amount"
+      const priorityKeywords = /(?:มูลค่ารวมภาษี|รวมเงินทั้งสิ้น|ยอดรวมสุทธิ|จำนวนเงินรวม|total\s*amount|net\s*amount|grand\s*total)/i;
       for (let i = 0; i < lines.length; i++) {
-        const m = lines[i].match(keywordRegex);
-        if (m && m[1]) {
-          const val = parseFloat(m[1]);
-          if (val >= 20 && val <= 50000) {
-            return { totalAmount: val, fuelType: fuelType, stationOrNote: '' };
+        if (priorityKeywords.test(lines[i])) {
+          const numsInLine = lines[i].match(/\d{2,5}\.\d{2}/g);
+          if (numsInLine && numsInLine.length > 0) {
+            const val = parseFloat(numsInLine[numsInLine.length - 1]);
+            if (val >= 20 && val <= 50000) {
+              return { totalAmount: val, fuelType: fuelType, stationOrNote: stationOrNote };
+            }
           }
         }
       }
 
-      // ค้นหาตัวเลขทศนิยม 2 ตำแหน่งที่เป็นไปได้ว่าจะเป็นยอดเงินรวม (เช่น 500.00, 1200.50)
-      const decimalMatches = cleanText.match(/\b\d{2,4}\.\d{2}\b/g);
-      if (decimalMatches && decimalMatches.length > 0) {
-        const nums = decimalMatches
-          .map(function(n) { return parseFloat(n); })
-          .filter(function(n) { return n >= 30 && n <= 30000 && (n < 1990 || n > 2035); });
-        if (nums.length > 0) {
-          const maxAmount = Math.max.apply(null, nums);
-          return { totalAmount: maxAmount, fuelType: fuelType, stationOrNote: '' };
+      // 3. ค้นหาจากบรรทัดรายการสินค้า เช่น "PT MAX LPG ... 29.44 BT 14.72 42.00 391.40" (ตัวเลขตัวสุดท้ายของบรรทัดคือ Amount)
+      for (let i = 0; i < lines.length; i++) {
+        if (/(?:PT\s*MAX|LPG|E20|NGV|0000\d{2})/i.test(lines[i])) {
+          const lineNums = lines[i].match(/\d{2,5}\.\d{2}/g);
+          if (lineNums && lineNums.length > 0) {
+            const lastNum = parseFloat(lineNums[lineNums.length - 1]);
+            if (lastNum >= 30 && lastNum <= 50000) {
+              return { totalAmount: lastNum, fuelType: fuelType, stationOrNote: stationOrNote };
+            }
+          }
         }
       }
+
+      // 4. ค้นหาตัวเลขทศนิยม 2 ตำแหน่งทั้งหมดในใบเสร็จ แล้วเลือกค่าที่มากที่สุด (เพราะยอดรวมภาษี "391.40" จะมากกว่ายอดก่อนภาษี "365.79" และส่วนลด "42.00" เสมอ)
+      const allDecimals = normalized.match(/\b\d{2,5}\.\d{2}\b/g);
+      if (allDecimals && allDecimals.length > 0) {
+        const validNums = allDecimals
+          .map(function(n) { return parseFloat(n); })
+          .filter(function(n) {
+            // กรองค่าที่ไม่ใช่ยอดเงิน เช่น 1.50% หรือเลขปี ค.ศ./พ.ศ.
+            return n >= 35 && n <= 35000 && (n < 1990 || n > 2600);
+          });
+
+        if (validNums.length > 0) {
+          // หากมีตัวเลขที่ซ้ำกัน 2 จุด (เช่น 391.40 ที่อยู่ในตาราง Amount และช่องมูลค่ารวมภาษี) ให้ให้ความสำคัญเป็นอันดับแรก
+          const freq = {};
+          let bestRepeated = 0;
+          validNums.forEach(function(n) {
+            const k = n.toFixed(2);
+            freq[k] = (freq[k] || 0) + 1;
+            if (freq[k] >= 2 && n > bestRepeated) {
+              bestRepeated = n;
+            }
+          });
+          if (bestRepeated > 0) {
+            return { totalAmount: bestRepeated, fuelType: fuelType, stationOrNote: stationOrNote };
+          }
+
+          const maxAmount = Math.max.apply(null, validNums);
+          return { totalAmount: maxAmount, fuelType: fuelType, stationOrNote: stationOrNote };
+        }
+      }
+
       return null;
     }
 
     function clearImage() {
       compressedBase64 = '';
+      highResOcrDataUrl = '';
       compressedFileName = '';
       document.getElementById('fileInput').value = '';
       document.getElementById('previewBox').classList.add('hidden');
